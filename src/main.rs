@@ -10,7 +10,8 @@ fn main() {
 
 #[derive(Component)]
 struct Bird {
-    name: String
+    name: String,
+    hunger: i8,
 }
 
 impl Bird {
@@ -41,10 +42,16 @@ fn setup_sys(
         Player { health: 100 },
         Mesh2d(meshes.add(Annulus::new(25.0, 50.0))),
         MeshMaterial2d(materials.add(Color::WHITE)),
-        Transform::IDENTITY,
+        Transform::from_xyz(0., -250., 0.),
     ));
 
-    cmd.spawn(Bird { name: "greenfinch".to_string() });
+    cmd.spawn((
+        Bird { name: "greenfinch".to_string(), hunger: 50 },
+        Mesh2d(meshes.add(Capsule2d::new(25.0, 50.0))),
+        //MeshMaterial2d(materials.add(Color::rgb(150., 0., 0.))),
+        MeshMaterial2d(materials.add(Color::linear_rgb(181. / 256., 224. / 256., 120. / 256.))),
+        Transform::from_xyz(0., 250., 0.),
+    ));
 }
 
 fn player_move_sys(
