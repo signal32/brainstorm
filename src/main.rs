@@ -34,15 +34,18 @@ struct Player {
 fn setup_sys(
     mut cmd: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    windows: Query<&Window>
 ) {
+    let window_height = windows.single().height();
+
     cmd.spawn(Camera2d);
 
     cmd.spawn((
         Player { health: 100 },
         Mesh2d(meshes.add(Annulus::new(25.0, 50.0))),
         MeshMaterial2d(materials.add(Color::WHITE)),
-        Transform::from_xyz(0., -250., 0.),
+        Transform::from_xyz(0., - window_height / 2. + 75., 0.),
     ));
 
     cmd.spawn((
@@ -74,10 +77,12 @@ fn player_move_sys(
 
 fn bird_move_sys(
     mut birds: Query<&mut Transform, With<Bird>>,
+    windows: Query<&Window>
 ) {
     for mut bird_tf in birds.iter_mut() {
-        if bird_tf.translation.y < -1000. {
-            bird_tf.translation.y = 1000.
+        let height = windows.single().height();
+        if bird_tf.translation.y < - height / 2. - 50. {
+            bird_tf.translation.y = height / 2. + 50.
         }
         bird_tf.translation.y -= 2.5
     }
