@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use rand::prelude::*;
 
 fn main() {
     App::new()
@@ -38,6 +39,9 @@ fn setup_sys(
     windows: Query<&Window>
 ) {
     let window_height = windows.single().height();
+    let window_width = windows.single().width();
+    let bird_count = 10;
+    let bird_padding = 200.;
 
     cmd.spawn(Camera2d);
 
@@ -48,13 +52,21 @@ fn setup_sys(
         Transform::from_xyz(0., - window_height / 2. + 75., 0.),
     ));
 
-    cmd.spawn((
-        Bird { name: "greenfinch".to_string(), hunger: 50 },
-        Mesh2d(meshes.add(Capsule2d::new(25.0, 50.0))),
-        //MeshMaterial2d(materials.add(Color::rgb(150., 0., 0.))),
-        MeshMaterial2d(materials.add(Color::linear_rgb(181. / 256., 224. / 256., 120. / 256.))),
-        Transform::from_xyz(0., 250., 0.),
-    ));
+    let mut rng = rand::rng();
+    for i in 0..bird_count {
+        let x = ((window_width - bird_padding) / (bird_count - 1) as f32) * i as f32;
+
+        cmd.spawn((
+            Bird { name: "greenfinch".to_string(), hunger: 50 },
+            Mesh2d(meshes.add(Capsule2d::new(25.0, 50.0))),
+            MeshMaterial2d(materials.add(Color::linear_rgb(
+                rng.random_range(0. .. 1.),
+                rng.random_range(0. .. 1.),
+                rng.random_range(0. .. 1.),
+            ))),
+            Transform::from_xyz(x - (window_width - bird_padding) * 0.5 , rng.random_range(0. .. window_height), 0.),
+        ));
+    }
 }
 
 fn player_move_sys(
