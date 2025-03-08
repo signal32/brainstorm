@@ -64,7 +64,7 @@ fn setup_sys(
                 rng.random_range(0. .. 1.),
                 rng.random_range(0. .. 1.),
             ))),
-            Transform::from_xyz(x - (window_width - bird_padding) * 0.5 , rng.random_range(0. .. window_height), 0.),
+            Transform::from_xyz(x - (window_width - bird_padding) * 0.5 , rng.random_range(0. .. window_height), 10.),
         ));
     }
 }
