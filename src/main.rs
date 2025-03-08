@@ -3,7 +3,7 @@ use bevy::prelude::*;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_systems(Update, (bird_tweet_sys, player_move_sys))
+        .add_systems(Update, (bird_tweet_sys, player_move_sys, bird_move_sys))
         .add_systems(Startup, setup_sys)
         .run();
 }
@@ -59,11 +59,28 @@ fn player_move_sys(
     keys: Res<ButtonInput<KeyCode>>
 ) {
     for mut player_tf in players.iter_mut() {
+        if player_tf.translation.x > 600. {
+            player_tf.translation.x = -600.
+        }
+        if player_tf.translation.x < -600. {
+            player_tf.translation.x = 600.
+        }
         if keys.pressed(KeyCode::KeyA) {
             player_tf.translation.x  -= 10.
         }
         if keys.pressed(KeyCode::KeyD) {
             player_tf.translation.x  += 10.
         }
+    }
+}
+
+fn bird_move_sys(
+    mut birds: Query<&mut Transform, With<Bird>>,
+) {
+    for mut bird_tf in birds.iter_mut() {
+        if bird_tf.translation.y < -1000. {
+            bird_tf.translation.y = 1000.
+        }
+        bird_tf.translation.y -= 2.5
     }
 }
