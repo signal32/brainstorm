@@ -56,20 +56,18 @@ fn setup_sys(
 
 fn player_move_sys(
     mut players: Query<&mut Transform, With<Player>>,
+    windows: Query<&Window>,
     keys: Res<ButtonInput<KeyCode>>
 ) {
     for mut player_tf in players.iter_mut() {
-        if player_tf.translation.x > 600. {
-            player_tf.translation.x = -600.
-        }
-        if player_tf.translation.x < -600. {
-            player_tf.translation.x = 600.
-        }
+        let width = windows.single().width();
+        let move_distance = if keys.pressed(KeyCode::ShiftLeft) { 25. } else { 10. };
+
         if keys.pressed(KeyCode::KeyA) {
-            player_tf.translation.x  -= 10.
+            player_tf.translation.x = (player_tf.translation.x -move_distance).max(-width / 2.)
         }
         if keys.pressed(KeyCode::KeyD) {
-            player_tf.translation.x  += 10.
+            player_tf.translation.x = (player_tf.translation.x + move_distance).min(width / 2.)
         }
     }
 }
