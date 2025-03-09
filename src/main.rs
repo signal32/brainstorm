@@ -1,10 +1,10 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, utils::HashMap};
 use rand::prelude::*;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_systems(Update, (bird_tweet_sys, player_move_sys, bird_move_sys))
+        .add_systems(Update, (bird_tweet_sys, player_move_sys, bird_move_sys, bird_spawn_sys))
         .add_systems(Startup, setup_sys)
         .run();
 }
@@ -57,14 +57,14 @@ fn setup_sys(
         let x = ((window_width - bird_padding) / (bird_count - 1) as f32) * i as f32;
 
         cmd.spawn((
-            Bird { name: "greenfinch".to_string(), hunger: 50 },
-            Mesh2d(meshes.add(Capsule2d::new(25.0, 50.0))),
+            BirdSpawner { spawn_probability: 0.001, cooldown: 2. },
+            Mesh2d(meshes.add(Rhombus::new(25.0, 50.0))),
             MeshMaterial2d(materials.add(Color::linear_rgb(
                 rng.random_range(0. .. 1.),
                 rng.random_range(0. .. 1.),
                 rng.random_range(0. .. 1.),
             ))),
-            Transform::from_xyz(x - (window_width - bird_padding) * 0.5 , rng.random_range(0. .. window_height), 10.),
+            Transform::from_xyz(x - (window_width - bird_padding) * 0.5 , window_height * 0.5, 50.),
         ));
     }
 }
@@ -88,14 +88,59 @@ fn player_move_sys(
 }
 
 fn bird_move_sys(
-    mut birds: Query<&mut Transform, With<Bird>>,
+    mut cmd: Commands,
+    mut birds: Query<(Entity, &mut Transform), With<Bird>>,
     windows: Query<&Window>
 ) {
-    for mut bird_tf in birds.iter_mut() {
-        let height = windows.single().height();
+    let height = windows.single().height();
+    for (entity, mut bird_tf) in birds.iter_mut() {
+        bird_tf.translation.y -= 2.5;
+
         if bird_tf.translation.y < - height / 2. - 50. {
-            bird_tf.translation.y = height / 2. + 50.
+            cmd.entity(entity).despawn();
         }
-        bird_tf.translation.y -= 2.5
+    }
+}
+
+
+#[derive(Component)]
+struct BirdSpawner {
+    cooldown: f32,
+    spawn_probability: f64,
+}
+
+fn bird_spawn_sys(
+    spawners: Query<(Entity, &BirdSpawner, &Transform)>,
+    time: Res<Time>,
+    mut last_entity_spawn_time: Local<HashMap<Entity, f32>>,
+    mut cmd: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+) {
+    let mut rng = rand::rng();
+
+    for (entity, spawner, spawner_tf) in spawners.iter() {
+        let time_now = time.elapsed_secs();
+        let last_spawn_time = last_entity_spawn_time
+            .entry(entity)
+            .or_insert(time.elapsed_secs());
+        let cooldown_expired = spawner.cooldown < time_now - *last_spawn_time;
+        let do_we_bird_yet = rng.random_bool(spawner.spawn_probability);
+
+        if  cooldown_expired && do_we_bird_yet {
+            last_entity_spawn_time.insert(entity, time_now);
+
+            cmd.spawn((
+                Bird { name: "greenfinch".to_string(), hunger: 50 },
+                Mesh2d(meshes.add(Capsule2d::new(25.0, 50.0))),
+                MeshMaterial2d(materials.add(Color::linear_rgb(
+                    rng.random_range(0. .. 1.),
+                    rng.random_range(0. .. 1.),
+                    rng.random_range(0. .. 1.),
+                ))),
+                spawner_tf.clone() // birbs will clip into spawners but spawners are only rendered for debugging
+            ));
+        }
+
     }
 }
