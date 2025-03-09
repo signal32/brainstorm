@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use bevy::{prelude::*, utils::HashMap};
 use rand::prelude::*;
 
@@ -92,7 +93,7 @@ fn setup_sys(
         Text::new("howdy!".to_string()), // initial greeting before any birds show up
         TextFont {
             // lolz we are gonna have issues with the \ / windows/linux issue so i need to get myself on linux right this second lmfao
-            font: asset_server.load("fonts\\NewHiScore.ttf"),
+            font: asset_server.load(PathBuf::from("fonts").join("NewHiScore.ttf")),
             font_size: 50.,
             ..default()
         },
