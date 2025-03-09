@@ -36,7 +36,7 @@ fn update_bird_tweet_sys(
     for mut text in ui_texts.iter_mut() {
         for BirdSpawnEvent(entity) in bird_spawn_ev.read() {
              // rust reckons i should do this with an "if let" but i dont get the syntax so i'll refactor it when i do LOL
-            for bird in birds.get(*entity) {
+            if let Ok(bird) = birds.get(*entity) {
                 **text = format!("tweet i am a {}", bird.name);
             }
         }
