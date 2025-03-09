@@ -152,6 +152,7 @@ struct BirdSpawnEvent(Entity);
 fn bird_spawn_sys(
     spawners: Query<(Entity, &BirdSpawner, &Transform)>,
     time: Res<Time>,
+    asset_server: Res<AssetServer>,
     mut bird_spawn_ev: EventWriter<BirdSpawnEvent>,
     mut last_entity_spawn_time: Local<HashMap<Entity, f32>>,
     mut cmd: Commands,
@@ -181,6 +182,7 @@ fn bird_spawn_sys(
                     rng.random_range(0. .. 1.),
                     rng.random_range(0. .. 1.),
                 ))),
+                Sprite::from_image(asset_server.load("sprites\\blue_bird.png")),
                 spawner_tf.clone() // birbs will clip into spawners but spawners are only rendered for debugging
             )).id();
 
