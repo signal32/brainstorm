@@ -35,7 +35,7 @@ fn update_bird_tweet_sys(
 ) {
     for mut text in ui_texts.iter_mut() {
         for BirdSpawnEvent(entity) in bird_spawn_ev.read() {
-            if let Ok(bird) = birds.get(*entity) {
+            for bird in birds.get(*entity) {
                 **text = format!("tweet i am a {}", bird.name);
             }
         }
