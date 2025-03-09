@@ -159,6 +159,7 @@ fn bird_spawn_sys(
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     let mut rng = rand::rng();
+    let bird_types: Vec<&str> = vec!["greenfinch", "jackdaw", "robin", "swallow", "magpie"];
 
     for (entity, spawner, spawner_tf) in spawners.iter() {
         let time_now = time.elapsed_secs();
@@ -170,8 +171,6 @@ fn bird_spawn_sys(
 
         if cooldown_expired && do_we_bird_yet {
             last_entity_spawn_time.insert(entity, time_now);
-
-            let bird_types: Vec<&str> = vec!["greenfinch", "jackdaw", "robin", "swallow", "magpie"];
 
             let bird_entity = cmd.spawn((
                 //Bird { name: "greenfinch".to_string(), hunger: 50 },
