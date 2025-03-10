@@ -10,7 +10,7 @@ use rand::prelude::*;
 fn main() {
     App::new()
         .add_plugins((
-            DefaultPlugins,
+            DefaultPlugins.set(ImagePlugin::default_nearest()),
             PhysicsPlugin,
             ProjectilePlugin,
         ))
@@ -187,7 +187,12 @@ fn bird_spawn_sys(
                     rng.random_range(0. .. 1.),
                     rng.random_range(0. .. 1.),
                 ))),
-                Sprite::from_image(asset_server.load(PathBuf::from("sprites").join("blue_bird.png"))),
+                Sprite {
+                    image: asset_server.load(PathBuf::from("sprites").join("blue_bird.png")),
+                    custom_size: Some(Vec2::splat(128.)),
+                    image_mode: SpriteImageMode::Auto,
+                    ..default()
+                },
                 spawner_tf.clone() // birbs will clip into spawners but spawners are only rendered for debugging
             )).id();
 
