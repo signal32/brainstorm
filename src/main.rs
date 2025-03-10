@@ -1,18 +1,25 @@
+mod projectile;
+mod physics;
+
 use std::{f32::consts::PI, path::PathBuf};
 use bevy::{prelude::*, utils::HashMap};
+use physics::{PhysicsPlugin, Velocity};
+use projectile::{ProjectileLauncher, ProjectilePlugin};
 use rand::prelude::*;
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
+        .add_plugins((
+            DefaultPlugins,
+            PhysicsPlugin,
+            ProjectilePlugin,
+        ))
         .add_event::<BirdSpawnEvent>()
         .add_systems(Startup, setup_sys)
         .add_systems(Update, (
             update_bird_tweet_sys,
             player_move_sys,
-            velocity_move_sys,
             bird_spawn_sys,
-            launch_projectiles_sys,
         ))
         .run();
 }
@@ -136,28 +143,6 @@ fn player_move_sys(
 }
 
 #[derive(Component)]
-struct Velocity(f32);
-
-fn velocity_move_sys(
-    mut cmd: Commands,
-    mut entities: Query<(Entity, &mut Transform, &Velocity)>,
-    windows: Query<&Window>,
-    time: Res<Time>,
-) {
-    let height = windows.single().height();
-    for (entity, mut tf, velocity) in entities.iter_mut() {
-        let forward = tf.rotation * Vec3::Y;
-        let distance = velocity.0 * time.delta_secs();
-        tf.translation += forward * distance;
-
-        if tf.translation.y < - height / 2. - 50. {
-            cmd.entity(entity).despawn();
-        }
-    }
-}
-
-
-#[derive(Component)]
 struct BirdSpawner {
     cooldown: f32,
     spawn_probability: f64,
@@ -209,35 +194,5 @@ fn bird_spawn_sys(
             bird_spawn_ev.send(BirdSpawnEvent(bird_entity));
         }
 
-    }
-}
-
-#[derive(Component)]
-struct Projectile {
-    // payload:
-}
-
-#[derive(Component)]
-struct ProjectileLauncher {
-    launch_key: KeyCode,
-}
-
-fn launch_projectiles_sys(
-    mut cmd: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-    launchers: Query<(&ProjectileLauncher, &Transform)>,
-    keys: Res<ButtonInput<KeyCode>>,
-) {
-    for (launcher, launcher_tf) in launchers.iter() {
-        if keys.just_pressed(launcher.launch_key) {
-            cmd.spawn((
-                Projectile {},
-                Velocity(200.),
-                launcher_tf.clone(),
-                Mesh2d(meshes.add(Circle::new(10.))),
-                MeshMaterial2d(materials.add(Color::srgb_u8(127, 0, 100))),
-            ));
-        }
     }
 }
