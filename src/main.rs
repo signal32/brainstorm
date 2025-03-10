@@ -11,7 +11,8 @@ fn main() {
             update_bird_tweet_sys,
             player_move_sys,
             velocity_move_sys,
-            bird_spawn_sys
+            bird_spawn_sys,
+            launch_projectiles_sys,
         ))
         .run();
 }
@@ -66,6 +67,9 @@ fn setup_sys(
 
     cmd.spawn((
         Player { health: 100 },
+        ProjectileLauncher {
+            launch_key: KeyCode::Space
+        },
         Mesh2d(meshes.add(Annulus::new(25.0, 50.0))),
         MeshMaterial2d(materials.add(Color::WHITE)),
         Transform::from_xyz(0., - window_height / 2. + 75., 0.),
@@ -205,5 +209,35 @@ fn bird_spawn_sys(
             bird_spawn_ev.send(BirdSpawnEvent(bird_entity));
         }
 
+    }
+}
+
+#[derive(Component)]
+struct Projectile {
+    // payload:
+}
+
+#[derive(Component)]
+struct ProjectileLauncher {
+    launch_key: KeyCode,
+}
+
+fn launch_projectiles_sys(
+    mut cmd: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    launchers: Query<(&ProjectileLauncher, &Transform)>,
+    keys: Res<ButtonInput<KeyCode>>,
+) {
+    for (launcher, launcher_tf) in launchers.iter() {
+        if keys.just_pressed(launcher.launch_key) {
+            cmd.spawn((
+                Projectile {},
+                Velocity(200.),
+                launcher_tf.clone(),
+                Mesh2d(meshes.add(Circle::new(10.))),
+                MeshMaterial2d(materials.add(Color::srgb_u8(127, 0, 100))),
+            ));
+        }
     }
 }
