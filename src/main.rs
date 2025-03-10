@@ -181,16 +181,11 @@ fn bird_spawn_sys(
                     hunger: 50,
                 },
                 Velocity(100.),
-                Mesh2d(meshes.add(Capsule2d::new(25.0, 50.0))),
-                MeshMaterial2d(materials.add(Color::linear_rgb(
-                    rng.random_range(0. .. 1.),
-                    rng.random_range(0. .. 1.),
-                    rng.random_range(0. .. 1.),
-                ))),
                 Sprite {
                     image: asset_server.load(PathBuf::from("sprites").join("blue_bird.png")),
                     custom_size: Some(Vec2::splat(128.)),
                     image_mode: SpriteImageMode::Auto,
+                    flip_y: true,
                     ..default()
                 },
                 spawner_tf.clone() // birbs will clip into spawners but spawners are only rendered for debugging
