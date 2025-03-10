@@ -5,9 +5,14 @@ use rand::prelude::*;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_systems(Update, (bird_tweet_sys, update_bird_tweet_sys, player_move_sys, bird_move_sys, bird_spawn_sys))
-        .add_systems(Startup, setup_sys)
         .add_event::<BirdSpawnEvent>()
+        .add_systems(Startup, setup_sys)
+        .add_systems(Update, (
+            update_bird_tweet_sys,
+            player_move_sys,
+            bird_move_sys,
+            bird_spawn_sys
+        ))
         .run();
 }
 
@@ -21,12 +26,6 @@ struct Bird {
 impl Bird {
     fn tweet(&self) {
         println!("tweet i am a {}", self.name)
-    }
-}
-
-fn bird_tweet_sys(birds: Query<&Bird>) {
-    for bird in birds.iter() {
-        bird.tweet();
     }
 }
 
