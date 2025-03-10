@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{f32::consts::PI, path::PathBuf};
 use bevy::{prelude::*, utils::HashMap};
 use rand::prelude::*;
 
@@ -15,6 +15,7 @@ fn main() {
 struct Bird {
     name: String,
     hunger: i8,
+    speed: f32,
 }
 
 impl Bird {
@@ -76,6 +77,13 @@ fn setup_sys(
     for i in 0..bird_count {
         let x = ((window_width - bird_padding) / (bird_count - 1) as f32) * i as f32;
 
+        let mut transform = Transform::from_xyz(
+            x - (window_width - bird_padding) * 0.5 ,
+            window_height * 0.5,
+            50.
+        );
+        transform.rotate_local_x(PI);
+
         cmd.spawn((
             BirdSpawner { spawn_probability: 0.001, cooldown: 2. },
             Mesh2d(meshes.add(Rhombus::new(25.0, 50.0))),
@@ -84,7 +92,7 @@ fn setup_sys(
                 rng.random_range(0. .. 1.),
                 rng.random_range(0. .. 1.),
             ))),
-            Transform::from_xyz(x - (window_width - bird_padding) * 0.5 , window_height * 0.5, 50.),
+            transform,
         ));
     }
 
@@ -127,12 +135,15 @@ fn player_move_sys(
 
 fn bird_move_sys(
     mut cmd: Commands,
-    mut birds: Query<(Entity, &mut Transform), With<Bird>>,
-    windows: Query<&Window>
+    mut birds: Query<(Entity, &mut Transform, &Bird)>,
+    windows: Query<&Window>,
+    time: Res<Time>,
 ) {
     let height = windows.single().height();
-    for (entity, mut bird_tf) in birds.iter_mut() {
-        bird_tf.translation.y -= 2.5;
+    for (entity, mut bird_tf, bird) in birds.iter_mut() {
+        let forward = bird_tf.rotation * Vec3::Y;
+        let distance = bird.speed * time.delta_secs();
+        bird_tf.translation += forward * distance;
 
         if bird_tf.translation.y < - height / 2. - 50. {
             cmd.entity(entity).despawn();
@@ -175,8 +186,11 @@ fn bird_spawn_sys(
             last_entity_spawn_time.insert(entity, time_now);
 
             let bird_entity = cmd.spawn((
-                //Bird { name: "greenfinch".to_string(), hunger: 50 },
-                Bird{ name: ( bird_types[rng.random_range(0..bird_types.len())]).to_string(), hunger: 50 }, // give birds random names
+                Bird{
+                    name: ( bird_types[rng.random_range(0..bird_types.len())]).to_string(),   // give birds random names
+                    hunger: 50,
+                    speed: 100.,
+                },
                 Mesh2d(meshes.add(Capsule2d::new(25.0, 50.0))),
                 MeshMaterial2d(materials.add(Color::linear_rgb(
                     rng.random_range(0. .. 1.),
