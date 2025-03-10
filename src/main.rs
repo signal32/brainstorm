@@ -183,7 +183,7 @@ fn bird_spawn_sys(
                     rng.random_range(0. .. 1.),
                     rng.random_range(0. .. 1.),
                 ))),
-                Sprite::from_image(asset_server.load("sprites\\blue_bird.png")),
+                Sprite::from_image(asset_server.load(PathBuf::from("sprites").join("blue_bird.png"))),
                 spawner_tf.clone() // birbs will clip into spawners but spawners are only rendered for debugging
             )).id();
 
