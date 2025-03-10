@@ -10,7 +10,7 @@ fn main() {
         .add_systems(Update, (
             update_bird_tweet_sys,
             player_move_sys,
-            bird_move_sys,
+            velocity_move_sys,
             bird_spawn_sys
         ))
         .run();
@@ -20,7 +20,6 @@ fn main() {
 struct Bird {
     name: String,
     hunger: i8,
-    speed: f32,
 }
 
 impl Bird {
@@ -132,19 +131,22 @@ fn player_move_sys(
     }
 }
 
-fn bird_move_sys(
+#[derive(Component)]
+struct Velocity(f32);
+
+fn velocity_move_sys(
     mut cmd: Commands,
-    mut birds: Query<(Entity, &mut Transform, &Bird)>,
+    mut entities: Query<(Entity, &mut Transform, &Velocity)>,
     windows: Query<&Window>,
     time: Res<Time>,
 ) {
     let height = windows.single().height();
-    for (entity, mut bird_tf, bird) in birds.iter_mut() {
-        let forward = bird_tf.rotation * Vec3::Y;
-        let distance = bird.speed * time.delta_secs();
-        bird_tf.translation += forward * distance;
+    for (entity, mut tf, velocity) in entities.iter_mut() {
+        let forward = tf.rotation * Vec3::Y;
+        let distance = velocity.0 * time.delta_secs();
+        tf.translation += forward * distance;
 
-        if bird_tf.translation.y < - height / 2. - 50. {
+        if tf.translation.y < - height / 2. - 50. {
             cmd.entity(entity).despawn();
         }
     }
@@ -188,8 +190,8 @@ fn bird_spawn_sys(
                 Bird{
                     name: ( bird_types[rng.random_range(0..bird_types.len())]).to_string(),   // give birds random names
                     hunger: 50,
-                    speed: 100.,
                 },
+                Velocity(100.),
                 Mesh2d(meshes.add(Capsule2d::new(25.0, 50.0))),
                 MeshMaterial2d(materials.add(Color::linear_rgb(
                     rng.random_range(0. .. 1.),
