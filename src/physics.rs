@@ -7,6 +7,7 @@ pub struct PhysicsPlugin;
 
 impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
+        app.add_event::<ColliderContactEvent>();
         app.add_systems(Update, (
             velocity_move_sys,
             collider_contact_sys,
@@ -59,7 +60,8 @@ fn update_collider_isometry_sys(
 }
 
 fn collider_contact_sys(
-    moved_colliders: Query<(Entity, &ColliderAabb), Changed<ColliderAabb>>
+    moved_colliders: Query<(Entity, &ColliderAabb), Changed<ColliderAabb>>,
+    mut contact_evw: EventWriter<ColliderContactEvent>,
 ) {
     for [
         (a_entity, a_aabb),
@@ -67,8 +69,14 @@ fn collider_contact_sys(
     ] in moved_colliders.iter_combinations() {
         if let Some((a_aabb, b_aabb)) = a_aabb.0.zip(b_aabb.0) {
             if a_aabb.intersects(&b_aabb) {
-                info!("COLLISION {}..{}", a_entity, b_entity)
+                contact_evw.send(ColliderContactEvent { a: a_entity, b: b_entity });
             }
         }
     }
+}
+
+#[derive(Event)]
+pub struct ColliderContactEvent {
+    pub a: Entity,
+    pub b: Entity,
 }
