@@ -3,7 +3,7 @@ mod physics;
 
 use std::{f32::consts::PI, path::PathBuf};
 use bevy::{prelude::*, utils::HashMap};
-use physics::{PhysicsPlugin, Velocity};
+use physics::{Collider, PhysicsPlugin, Velocity};
 use projectile::{ProjectileLauncher, ProjectilePlugin};
 use rand::prelude::*;
 
@@ -181,6 +181,7 @@ fn bird_spawn_sys(
                     hunger: 50,
                 },
                 Velocity(100.),
+                Collider::Rectangle(Rectangle::new(100., 10.)),
                 Sprite {
                     image: asset_server.load(PathBuf::from("sprites").join("blue_bird.png")),
                     custom_size: Some(Vec2::splat(128.)),

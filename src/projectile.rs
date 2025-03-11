@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::physics::Velocity;
+use crate::physics::{Collider, Velocity};
 
 pub struct ProjectilePlugin;
 
@@ -33,6 +33,7 @@ fn launch_projectiles_sys(
             cmd.spawn((
                 Projectile {},
                 Velocity(200.),
+                Collider::Rectangle(Rectangle::new(100., 10.)),
                 launcher_tf.clone(),
                 Mesh2d(meshes.add(Circle::new(10.))),
                 MeshMaterial2d(materials.add(Color::srgb_u8(127, 0, 100))),
