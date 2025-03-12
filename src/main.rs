@@ -211,7 +211,7 @@ fn bird_hit_sys(
 
         if let Some((entity, mut velocity, mut tf)) = bird {
             velocity.0 *= 2.;
-            let rotate_rads = if rng.random_bool(0.5) { -1. } else { 1. };
+            let rotate_rads = if rng.random_bool(0.5) { -2. } else { 2. };
             info!("rotate_rads {}", rotate_rads);
             tf.rotate_local_z(rotate_rads);
         }
