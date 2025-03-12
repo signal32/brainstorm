@@ -9,7 +9,7 @@ impl Plugin for PhysicsPlugin {
         app.add_event::<ColliderContactEvent>();
         app.add_systems(Update, (
             velocity_move_sys,
-            update_collider_isometry_sys,
+            update_collider_aabb_sys,
         ));
         app.add_systems(PreUpdate, collider_contact_sys);
     }
@@ -45,7 +45,7 @@ pub enum Collider {
 #[derive(Component, Default)]
 struct ColliderAabb(Option<Aabb2d>);
 
-fn update_collider_isometry_sys(
+fn update_collider_aabb_sys(
     mut colliders: Query<(&mut ColliderAabb, &Collider, &Transform), Changed<Transform>>
 ) {
     for (mut aabb, collider, tf) in colliders.iter_mut() {
