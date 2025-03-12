@@ -201,15 +201,21 @@ fn bird_spawn_sys(
 
 fn bird_hit_sys(
     mut contact_ev: EventReader<ColliderContactEvent>,
-    mut birds: Query<(Entity, &mut Velocity, &mut Transform), With<Bird>>,
+    mut birds: Query<(&mut Velocity, &mut Transform), With<Bird>>,
 ) {
     let mut rng = rand::rng();
     for ev in contact_ev.read() {
+        // avoid total chaos by disavowing bird to bird collisions
+        if birds.get(ev.a).is_ok() && birds.get(ev.b).is_ok() {
+            continue;
+        }
+
+        // otherwise extract the bird from either of the two collisions, if any
         let bird = if let Ok(b) = birds.get_mut(ev.a) { Some(b) }
         else if let Ok(b) =  birds.get_mut(ev.b) { Some(b) }
         else { None };
 
-        if let Some((entity, mut velocity, mut tf)) = bird {
+        if let Some((mut velocity, mut tf)) = bird {
             velocity.0 *= 2.;
             let rotate_rads = if rng.random_bool(0.5) { -2. } else { 2. };
             info!("rotate_rads {}", rotate_rads);
