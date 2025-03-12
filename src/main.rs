@@ -1,10 +1,12 @@
 mod projectile;
 mod physics;
+//mod menu;
 
 use std::{f32::consts::PI, path::PathBuf};
 use bevy::{prelude::*, utils::HashMap};
 use physics::{PhysicsPlugin, Velocity};
 use projectile::{ProjectileLauncher, ProjectilePlugin};
+use menu::{MenuPlugin, PausePlugin}; // am i better off splitting this into multiple files? maybe? idk lol
 use rand::prelude::*;
 
 fn main() {
@@ -13,15 +15,27 @@ fn main() {
             DefaultPlugins.set(ImagePlugin::default_nearest()),
             PhysicsPlugin,
             ProjectilePlugin,
+            MenuPlugin,
         ))
+        .init_state::<GameState>()
         .add_event::<BirdSpawnEvent>()
         .add_systems(Startup, setup_sys)
         .add_systems(Update, (
             update_bird_tweet_sys,
             player_move_sys,
             bird_spawn_sys,
+            pause_listener_sys
         ))
         .run();
+}
+
+#[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
+enum GameState {
+    #[default] // for now i want it to default to game state, i.e. launch straight in with reckless abandon
+    Game,
+    Pause,
+    Menu,
+    Splash
 }
 
 #[derive(Component)]
@@ -194,5 +208,23 @@ fn bird_spawn_sys(
             bird_spawn_ev.send(BirdSpawnEvent(bird_entity));
         }
 
+    }
+}
+
+fn pause_listener_sys(
+    keys: Res<ButtonInput<KeyCode>>,
+    mut game_state: ResMut<NextState<GameState>>,
+) {
+    if keys.pressed(KeyCode::Escape) {
+        // change GameState
+        game_state.set(GameState::Pause)
+    }
+}
+
+// stole this directly from an example but it seems a sensible way of removing 
+// unneeded Entities with a given Component indiscriminantly
+fn despawn_screen<T: Component>(to_despawn: Query<Entity, With<T>>, mut commands: Commands) {
+    for entity in &to_despawn {
+        commands.entity(entity).despawn_recursive();
     }
 }
