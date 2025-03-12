@@ -1,6 +1,5 @@
 use bevy::{
-    prelude::*,
-    math::bounding::{Aabb2d, Bounded2d, IntersectsVolume},
+    math::bounding::{Aabb2d, Bounded2d, IntersectsVolume}, prelude::*, utils::hashbrown::HashMap
 };
 
 pub struct PhysicsPlugin;
@@ -10,9 +9,9 @@ impl Plugin for PhysicsPlugin {
         app.add_event::<ColliderContactEvent>();
         app.add_systems(Update, (
             velocity_move_sys,
-            collider_contact_sys,
             update_collider_isometry_sys,
         ));
+        app.add_systems(PreUpdate, collider_contact_sys);
     }
 }
 
