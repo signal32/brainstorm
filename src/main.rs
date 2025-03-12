@@ -3,7 +3,7 @@ mod physics;
 
 use std::{f32::consts::PI, path::PathBuf};
 use bevy::{prelude::*, utils::HashMap};
-use physics::{Collider, PhysicsPlugin, Velocity};
+use physics::{Collider, ColliderContactEvent, PhysicsPlugin, Velocity};
 use projectile::{ProjectileLauncher, ProjectilePlugin};
 use rand::prelude::*;
 
@@ -20,6 +20,7 @@ fn main() {
             update_bird_tweet_sys,
             player_move_sys,
             bird_spawn_sys,
+            bird_hit_sys,
         ))
         .run();
 }
@@ -195,5 +196,24 @@ fn bird_spawn_sys(
             bird_spawn_ev.send(BirdSpawnEvent(bird_entity));
         }
 
+    }
+}
+
+fn bird_hit_sys(
+    mut contact_ev: EventReader<ColliderContactEvent>,
+    mut birds: Query<(Entity, &mut Velocity, &mut Transform), With<Bird>>,
+) {
+    let mut rng = rand::rng();
+    for ev in contact_ev.read() {
+        let bird = if let Ok(b) = birds.get_mut(ev.a) { Some(b) }
+        else if let Ok(b) =  birds.get_mut(ev.b) { Some(b) }
+        else { None };
+
+        if let Some((entity, mut velocity, mut tf)) = bird {
+            velocity.0 *= 2.;
+            let rotate_rads = if rng.random_bool(0.5) { -1. } else { 1. };
+            info!("rotate_rads {}", rotate_rads);
+            tf.rotate_local_z(rotate_rads);
+        }
     }
 }
