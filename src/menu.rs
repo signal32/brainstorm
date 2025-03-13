@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, winit::WinitSettings};
 use super::{despawn_screen, GameState};
 
 pub struct MenuPlugin;
@@ -7,7 +7,7 @@ impl Plugin for MenuPlugin {
     fn build(&self, app: &mut App) {
         app
         // when we enter Menu GameState, spawn in the menu items
-        .add_systems(OnEnter(GameState::Menu), menu_setup_sys)
+        //.add_systems(OnEnter(GameState::Menu), menu_setup_sys)
         // while we are in this state, run button listener
         .add_systems(Update, button_sys)
         // when we leave this state, despawn all the entities that were needed for this screen
@@ -18,13 +18,27 @@ impl Plugin for MenuPlugin {
 }
 
 // this is a tag component, so that we know what is on the menu screen
-#[derive](Component)
+#[derive(Component)]
 struct OnMenuScreen;
 
+// define the menu states
+// #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
+// enum MenuState {
+//     Menu,
+//     Settings,
+//     #[default]
+//     Disabled
+// }
+
 // set some color constants -- eventually this can maybe be configurable?
-const BUTTON_DEFAULT_COLOR: Color = Color::srgb_u8(49, 104, 65);
-const BUTTON_HOVER_COLOR: Color = Color::srgb_u8(49, 104, 93);
-const BUTTON_PRESSED_COLOR: Color = Color::srgb_u8(49, 104, 120);
+// this doestnt work and idk why yet
+// const BUTTON_DEFAULT_COLOR: Color = Color::srgb_u8(49, 104, 65);
+// const BUTTON_HOVER_COLOR: Color = Color::srgb_u8(49, 104, 93);
+// const BUTTON_PRESSED_COLOR: Color = Color::srgb_u8(49, 104, 120);
+
+const BUTTON_DEFAULT_COLOR: Color = Color::srgb(0.15, 0.15, 0.15);
+const BUTTON_HOVER_COLOR: Color = Color::srgb(0.15, 0.15, 0.15);
+const BUTTON_PRESSED_COLOR: Color = Color::srgb(0.15, 0.15, 0.15);
 
 
 fn button_sys (
@@ -56,6 +70,6 @@ fn button_sys (
     }
 }
 
-fn menu_setup_sys {
+// fn menu_setup_sys {
     
-}
+// }
