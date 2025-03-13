@@ -24,13 +24,13 @@ fn main() {
         .add_systems(Startup, setup_sys)
         //.add_systems(OnEnter(GameState::Game), resume_game_sys)
         .add_systems(Update, (
-            update_bird_tweet_sys,
-            player_move_sys,
-            bird_spawn_sys,
-            pause_listener_sys,
-            bird_hit_sys
+            update_bird_tweet_sys.run_if(in_state(GameState::Game)),
+            player_move_sys.run_if(in_state(GameState::Game)),
+            bird_spawn_sys.run_if(in_state(GameState::Game)),
+            pause_listener_sys.run_if(in_state(GameState::Game)),
+            bird_hit_sys.run_if(in_state(GameState::Game))
         ))
-        .add_systems(OnExit(GameState::Game), despawn_screen::<OnGameScreen>)
+        //.add_systems(OnExit(GameState::Game), despawn_screen::<OnGameScreen>)
         .run();
 }
 
@@ -189,6 +189,7 @@ fn bird_spawn_sys(
 ) {
     let mut rng = rand::rng();
     let bird_types: Vec<&str> = vec!["greenfinch", "jackdaw", "robin", "swallow", "magpie"];
+    let bird_files: Vec<&str> = vec!["blue_bird.png", "swallow.png"]; // i dont think for a second this is a good way of doing this but it works for now and i just wanted to see the swallows
 
     for (entity, spawner, spawner_tf) in spawners.iter() {
         let time_now = time.elapsed_secs();
@@ -203,13 +204,15 @@ fn bird_spawn_sys(
 
             let bird_entity = cmd.spawn((
                 Bird{
-                    name: ( bird_types[rng.random_range(0..bird_types.len())]).to_string(),   // give birds random names
+                    name: (bird_types[rng.random_range(0..bird_types.len())]).to_string(),   // give birds random names
                     hunger: 50,
                 },
                 Velocity(100.),
                 Collider::Rectangle(Rectangle::new(100., 10.)),
                 Sprite {
-                    image: asset_server.load(PathBuf::from("sprites").join("blue_bird.png")),
+                    image: asset_server.load(PathBuf::from("sprites").join(
+                        (bird_files[rng.random_range(0..bird_files.len())]).to_string()
+                    )),
                     custom_size: Some(Vec2::splat(128.)),
                     image_mode: SpriteImageMode::Auto,
                     flip_y: true,
@@ -255,9 +258,10 @@ fn pause_listener_sys(
     keys: Res<ButtonInput<KeyCode>>,
     mut game_state: ResMut<NextState<GameState>>,
 ) {
-    if keys.pressed(KeyCode::Escape) {
+    if keys.just_pressed(KeyCode::Escape) {
         // change GameState
-        game_state.set(GameState::Pause)
+        game_state.set(GameState::Pause);
+        info!("game state changed to paused!");
     }
 }
 

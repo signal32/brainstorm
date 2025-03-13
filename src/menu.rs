@@ -1,4 +1,4 @@
-use bevy::{prelude::*, winit::WinitSettings};
+use bevy::{prelude::*};
 use super::{despawn_screen, GameState};
 
 pub struct MenuPlugin;
@@ -11,9 +11,7 @@ impl Plugin for MenuPlugin {
         // while we are in this state, run button listener
         .add_systems(Update, button_sys)
         // when we leave this state, despawn all the entities that were needed for this screen
-        .add_systems(OnExit(GameState::Menu), despawn_screen::<OnMenuScreen>)
-        // only bother to do things if there is user input -- slow otherwise ?
-        .insert_resource(WinitSettings::desktop_app());
+        .add_systems(OnExit(GameState::Menu), despawn_screen::<OnMenuScreen>);
     }
 }
 
