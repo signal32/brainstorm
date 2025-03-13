@@ -4,7 +4,7 @@ mod physics;
 
 use std::{f32::consts::PI, path::PathBuf};
 use bevy::{prelude::*, utils::HashMap};
-use physics::{PhysicsPlugin, Velocity};
+use physics::{Collider, ColliderContactEvent, PhysicsPlugin, Velocity};
 use projectile::{ProjectileLauncher, ProjectilePlugin};
 use menu::{MenuPlugin, PausePlugin}; // am i better off splitting this into multiple files? maybe? idk lol
 use rand::prelude::*;
@@ -25,6 +25,7 @@ fn main() {
             player_move_sys,
             bird_spawn_sys,
             pause_listener_sys
+            bird_hit_sys,
         ))
         .run();
 }
@@ -195,6 +196,7 @@ fn bird_spawn_sys(
                     hunger: 50,
                 },
                 Velocity(100.),
+                Collider::Rectangle(Rectangle::new(100., 10.)),
                 Sprite {
                     image: asset_server.load(PathBuf::from("sprites").join("blue_bird.png")),
                     custom_size: Some(Vec2::splat(128.)),
@@ -226,5 +228,27 @@ fn pause_listener_sys(
 fn despawn_screen<T: Component>(to_despawn: Query<Entity, With<T>>, mut commands: Commands) {
     for entity in &to_despawn {
         commands.entity(entity).despawn_recursive();
+fn bird_hit_sys(
+    mut contact_ev: EventReader<ColliderContactEvent>,
+    mut birds: Query<(&mut Velocity, &mut Transform), With<Bird>>,
+) {
+    let mut rng = rand::rng();
+    for ev in contact_ev.read() {
+        // avoid total chaos by disavowing bird to bird collisions
+        if birds.get(ev.a).is_ok() && birds.get(ev.b).is_ok() {
+            continue;
+        }
+
+        // otherwise extract the bird from either of the two collisions, if any
+        let bird = if let Ok(b) = birds.get_mut(ev.a) { Some(b) }
+        else if let Ok(b) =  birds.get_mut(ev.b) { Some(b) }
+        else { None };
+
+        if let Some((mut velocity, mut tf)) = bird {
+            velocity.0 *= 2.;
+            let rotate_rads = if rng.random_bool(0.5) { -2. } else { 2. };
+            info!("rotate_rads {}", rotate_rads);
+            tf.rotate_local_z(rotate_rads);
+        }
     }
 }
