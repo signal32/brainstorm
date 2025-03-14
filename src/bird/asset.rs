@@ -4,7 +4,9 @@ use bevy::{
     reflect::TypePath,
 };
 use serde::Deserialize;
-use crate::{physics::{Collider, Velocity}, util::ron_asset_loader::RonAssetLoader, Bird};
+use crate::{physics::{Collider, Velocity}, util::ron_asset_loader::RonAssetLoader};
+
+use super::Bird;
 
 pub struct BirdPlugin;
 
@@ -23,7 +25,9 @@ impl Plugin for BirdPlugin {
 #[derive(Debug, Component)]
 pub struct BirdAssetHandle(pub Handle<BirdAsset>);
 
-fn load_bird_assets_sys(
+/// Loads asset file and spawns remaining [Bird] components
+/// on entities with a [BirdAssetHandle].
+pub(super) fn load_bird_assets_sys(
     mut cmd: Commands,
     bird_assets: Query<(Entity, &BirdAssetHandle), Without<Bird>>,
     asset_server: Res<AssetServer>,

@@ -1,6 +1,6 @@
 use bevy::{prelude::*};
 use std::{path::PathBuf};
-use super::{despawn_screen, GameState, UIText};
+use super::{despawn_screen, GameState};
 
 pub struct PausePlugin;
 
@@ -26,7 +26,6 @@ fn pause_setup_sys(
 ) {
     info!("we are paused");
     cmd.spawn((
-        UIText,
         Text::new("game paused!!!".to_string()),
         TextFont {
             font: asset_server.load(PathBuf::from("fonts").join("NewHiScore.ttf")),
