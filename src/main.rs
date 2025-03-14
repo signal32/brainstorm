@@ -28,7 +28,6 @@ fn main() {
             pause_menu_listener_sys
         ).run_if(in_state(GameState::Game)),
         ))
-        //.add_systems(OnExit(GameState::Game), despawn_screen::<OnGameScreen>)
         .run();
 }
 

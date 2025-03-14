@@ -12,8 +12,8 @@ impl Plugin for MenuPlugin {
         // handle stuff about whether we are in the menu GameState
         .add_systems(OnEnter(GameState::Menu), menu_setup_sys)
         .add_systems(Update, (
-            button_sys,
-            pause_menu_listener_sys,
+            button_color_sys,
+//            pause_menu_listener_sys, // uncomment once u certralise the logic for this
             menu_button_action_sys
         ).run_if(in_state(GameState::Menu)))
         .add_systems(OnExit(GameState::Menu), despawn_screen::<OnMenuScreen>)
@@ -67,17 +67,16 @@ const BUTTON_PRESSED_COLOR: Color = Color::srgb(0.45, 0.45, 0.45);
 const TEXT_COLOR: Color = Color::srgb(0.9, 0.9, 0.9);
 
 
-fn button_sys(
+fn button_color_sys(
     mut interaction_query: Query<
         (
             &Interaction,
             &mut BackgroundColor,
-            &Children,
         ),
         (Changed<Interaction>, With<Button>),
     >,
 ) {
-    for (interaction, mut color, children) in &mut interaction_query {
+    for (interaction, mut color) in &mut interaction_query {
         match *interaction {
             Interaction::Pressed => {
                 *color = BUTTON_PRESSED_COLOR.into();
@@ -218,16 +217,16 @@ fn menu_button_action_sys(
                 }
                 MenuButtonAction::Settings => {
                     menu_state.set(MenuState::Settings);
-                    info!("IM SO GLAD! (we are in settings menu state now thats nice)")
+                    info!("menu state: settings")
                 }
                 MenuButtonAction::BackToMainMenu => {
                     menu_state.set(MenuState::MainMenu);
-                    info!("back to main menu")
+                    info!("menu state: main menu")
                 }
                 MenuButtonAction::NewGame => {
                     game_state.set(GameState::Game);
                     menu_state.set(MenuState::Disabled);
-                    info!("resume the game yippeeee birds be flyin")
+                    info!("menu state: disabled and game state: game!")
                 }
             }
         }
