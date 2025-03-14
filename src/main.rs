@@ -1,8 +1,10 @@
 mod projectile;
 mod physics;
+mod bird;
 
 use std::{f32::consts::PI, path::PathBuf};
 use bevy::{prelude::*, utils::HashMap};
+use bird::{BirdAssetHandle, BirdPlugin};
 use physics::{Collider, ColliderContactEvent, PhysicsPlugin, Velocity};
 use projectile::{ProjectileLauncher, ProjectilePlugin};
 use rand::prelude::*;
@@ -13,6 +15,7 @@ fn main() {
             DefaultPlugins.set(ImagePlugin::default_nearest()),
             PhysicsPlugin,
             ProjectilePlugin,
+            BirdPlugin,
         ))
         .add_event::<BirdSpawnEvent>()
         .add_systems(Startup, setup_sys)
@@ -163,7 +166,10 @@ fn bird_spawn_sys(
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     let mut rng = rand::rng();
-    let bird_types: Vec<&str> = vec!["greenfinch", "jackdaw", "robin", "swallow", "magpie"];
+    let birds: Vec<&str> = vec![
+        "birds/bluebird.ron",
+        "birds/swallow.ron",
+    ];
 
     for (entity, spawner, spawner_tf) in spawners.iter() {
         let time_now = time.elapsed_secs();
@@ -177,19 +183,7 @@ fn bird_spawn_sys(
             last_entity_spawn_time.insert(entity, time_now);
 
             let bird_entity = cmd.spawn((
-                Bird{
-                    name: ( bird_types[rng.random_range(0..bird_types.len())]).to_string(),   // give birds random names
-                    hunger: 50,
-                },
-                Velocity(100.),
-                Collider::Rectangle(Rectangle::new(100., 10.)),
-                Sprite {
-                    image: asset_server.load(PathBuf::from("sprites").join("blue_bird.png")),
-                    custom_size: Some(Vec2::splat(128.)),
-                    image_mode: SpriteImageMode::Auto,
-                    flip_y: true,
-                    ..default()
-                },
+                BirdAssetHandle(asset_server.load(birds[rng.random_range(0..birds.len())])),
                 spawner_tf.clone() // birbs will clip into spawners but spawners are only rendered for debugging
             )).id();
 
@@ -218,7 +212,6 @@ fn bird_hit_sys(
         if let Some((mut velocity, mut tf)) = bird {
             velocity.0 *= 2.;
             let rotate_rads = if rng.random_bool(0.5) { -2. } else { 2. };
-            info!("rotate_rads {}", rotate_rads);
             tf.rotate_local_z(rotate_rads);
         }
     }
