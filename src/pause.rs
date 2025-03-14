@@ -10,7 +10,7 @@ impl Plugin for PausePlugin {
         // when we enter Pause GameState, spawn in the pause items
         .add_systems(OnEnter(GameState::Pause), pause_setup_sys)
         // while we are in this state, run unpause listener
-        .add_systems(Update, unpause_listener_sys)
+        .add_systems(Update, unpause_listener_sys.run_if(in_state(GameState::Pause)))
         // when we leave this state, despawn all the entities that were needed for this screen
         .add_systems(OnExit(GameState::Pause), despawn_screen::<OnPauseScreen>);
     }
