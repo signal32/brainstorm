@@ -7,9 +7,9 @@ pub struct ProjectilePlugin;
 impl Plugin for ProjectilePlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, (
-            launch_projectiles_sys.run_if(in_state(GameState::Game)),
-            projectile_hit_sys.run_if(in_state(GameState::Game)),
-        ));
+            launch_projectiles_sys,
+            projectile_hit_sys,
+        ).run_if(in_state(GameState::Game)));
     }
 }
 

@@ -16,10 +16,10 @@ impl Plugin for BirdPlugin {
     fn build(&self, app: &mut App) {
         app.init_asset::<BirdAsset>();
         app.init_asset_loader::<BirdAssetLoader>();
-        app.add_systems(Startup, (
+        app.add_systems(OnEnter(GameState::Game), (
             setup_sys,
             setup_spawner_sys,
-        ).run_if(in_state(GameState::Game)));
+        ));
         app.add_systems(FixedUpdate, (
             bird_spawn_sys,
             bird_hit_sys,
