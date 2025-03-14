@@ -27,30 +27,27 @@ fn main() {
         ))
         .init_state::<GameState>()
         .add_systems(Startup, setup_sys)
-        //.add_systems(OnEnter(GameState::Game), resume_game_sys)
-        .add_systems(Update, (
-            player_move_sys.run_if(in_state(GameState::Game)),
-            pause_listener_sys.run_if(in_state(GameState::Game)),
+        .add_systems(Update, ((
+            player_move_sys,
+            pause_menu_listener_sys
+        ).run_if(in_state(GameState::Game)),
         ))
-        //.add_systems(OnExit(GameState::Game), despawn_screen::<OnGameScreen>)
         .run();
 }
 
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
 pub(crate) enum GameState {
-    #[default] // for now i want it to default to game state, i.e. launch straight in with reckless abandon
-    Loading,
     Game,
     Pause,
+    #[default]
     Menu,
     Splash,
+    Loading,
 }
 
 // a label component to tell us which things are loaded in the Game GameState
 #[derive(Component)]
 struct OnGameScreen;
-
-
 
 #[derive(Component)]
 struct Player {
@@ -98,16 +95,53 @@ fn player_move_sys(
     }
 }
 
-fn pause_listener_sys(
+fn pause_menu_listener_sys(
     keys: Res<ButtonInput<KeyCode>>,
-    mut game_state: ResMut<NextState<GameState>>,
+    mut game_state: ResMut<NextState<GameState>>
 ) {
     if keys.just_pressed(KeyCode::Escape) {
-        // change GameState
         game_state.set(GameState::Pause);
-        info!("game state changed to paused!");
+        info!("game paused");
     }
 }
+
+// fn pause_menu_listener_sys(
+//     keys: Res<ButtonInput<KeyCode>>,
+//     mut game_state: ResMut<NextState<GameState>>,
+//     mut menu_state: ResMut<NextState<MenuState>>
+// ) {
+//     if keys.just_pressed(KeyCode::Escape) {
+//         match game_state {
+//             GameState::Game => {
+//                 game_state.set(GameState::Pause);
+//                 info!("game state changed to paused!");
+//             }
+//             GameState::Menu => {
+//                 match menu_state {
+//                     MenuState::MainMenu => {
+//                         menu_state.set(MenuState::Disabled);
+//                         game_state.set(GameState::Game);
+//                         info!("menu state is now diabled, and game state is game");
+//                     }
+//                     MenuState::Settings => {
+//                         menu_state.set(MenuState::MainMenu);
+//                         info!("menu state is now main menu");
+//                     }
+//                     _ => {
+//                         panic!("HOW DID WE GET HERE???");
+//                     }
+//                 }
+//             }
+//             GameState::Pause => {
+//                 info!("THIS NEEDS DOING YAS COME ON");
+//             }
+//             GameState::Splash => {
+//                 // do nothing lol
+//                 info!("HAH silly, u can't exit the splash screen, just wait.");
+//             }
+//         }
+//     }
+// }
 
 // stole this directly from an example but it seems a sensible way of removing
 // unneeded Entities with a given Component indiscriminantly

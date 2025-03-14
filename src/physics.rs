@@ -9,10 +9,10 @@ impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<ColliderContactEvent>();
         app.add_systems(Update, (
-            velocity_move_sys.run_if(in_state(GameState::Game)),
-            update_collider_aabb_sys.run_if(in_state(GameState::Game)),
-        ));
-        app.add_systems(PreUpdate, collider_contact_sys);
+            velocity_move_sys,
+            update_collider_aabb_sys,
+        ).run_if(in_state(GameState::Game)));
+        app.add_systems(PreUpdate, collider_contact_sys.run_if(in_state(GameState::Game)));
     }
 }
 
