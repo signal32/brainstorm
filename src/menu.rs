@@ -1,6 +1,6 @@
 use bevy::{prelude::*};
 use std::{path::PathBuf};
-use super::{despawn_screen, GameState, UIText};
+use super::{despawn_screen, pause_menu_listener_sys, GameState};
 
 pub struct MenuPlugin;
 
@@ -13,18 +13,16 @@ impl Plugin for MenuPlugin {
         .add_systems(OnEnter(GameState::Menu), menu_setup_sys)
         .add_systems(Update, (
             button_sys,
-            unmenu_yourself
+            pause_menu_listener_sys,
+            menu_button_action_sys
         ).run_if(in_state(GameState::Menu)))
         .add_systems(OnExit(GameState::Menu), despawn_screen::<OnMenuScreen>)
         // handle the Main Menu gubbins
         .add_systems(OnEnter(MenuState::MainMenu), main_menu_setup_sys)
-        .add_systems(Update, (
-            menu_button_action_sys
-        ).run_if(in_state(MenuState::MainMenu)))
-        .add_systems(OnExit(MenuState::MainMenu), despawn_screen::<OnMainMenuScreen>);
+        .add_systems(OnExit(MenuState::MainMenu), despawn_screen::<OnMainMenuScreen>)
         // handle the settings screen gubbins
-        // .add_systems(OnEnter(MenuState::Settings), settings_menu_setup_sys)
-        // .add_systems(OnExit(MenuState::Settings), despawn_screen::<OnSettingsScreen>);
+        .add_systems(OnEnter(MenuState::Settings), settings_menu_setup_sys)
+        .add_systems(OnExit(MenuState::Settings), despawn_screen::<OnSettingsMenuScreen>);
     }
 }
 
@@ -36,11 +34,11 @@ struct OnMenuScreen;
 struct OnMainMenuScreen;
 
 #[derive(Component)]
-struct OnSettingsScreen;
+struct OnSettingsMenuScreen;
 
 // define the menu states
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
-enum MenuState {
+pub enum MenuState {
     MainMenu,
     Settings,
     #[default]
@@ -69,24 +67,20 @@ const BUTTON_PRESSED_COLOR: Color = Color::srgb(0.45, 0.45, 0.45);
 const TEXT_COLOR: Color = Color::srgb(0.9, 0.9, 0.9);
 
 
-fn button_sys (
+fn button_sys(
     mut interaction_query: Query<
         (
             &Interaction,
             &mut BackgroundColor,
-            &mut BorderColor,
             &Children,
         ),
         (Changed<Interaction>, With<Button>),
     >,
-    mut text_query: Query<&mut Text>,
 ) {
-    for (interaction, mut color, mut border_color, children) in &mut interaction_query {
-        let mut text = text_query.get_mut(children[0]).unwrap(); // getting the text in case want to update it e.g. **text = "Resume".to_string();
+    for (interaction, mut color, children) in &mut interaction_query {
         match *interaction {
             Interaction::Pressed => {
                 *color = BUTTON_PRESSED_COLOR.into();
-                //border_color.0 = Color::WHITE; // can change border color if u want
             }
             Interaction::Hovered => {
                 *color = BUTTON_HOVER_COLOR.into();
@@ -108,7 +102,7 @@ fn main_menu_setup_sys(
     asset_server: Res<AssetServer>,
 ) {
     let button_node = Node {
-        width: Val::Px(300.0),
+        width: Val::Px(500.0),
         height: Val::Px(65.0),
         margin: UiRect::all(Val::Px(20.0)),
         justify_content: JustifyContent::Center,
@@ -117,7 +111,7 @@ fn main_menu_setup_sys(
     };
     let button_font = TextFont {
         font: asset_server.load(PathBuf::from("fonts").join("NewHiScore.ttf")),
-        font_size: 60.,
+        font_size: 50.,
         ..default()
     };
     let title_font = TextFont {
@@ -133,23 +127,24 @@ fn main_menu_setup_sys(
             height: Val::Percent(100.0),
             align_items: AlignItems::Center,
             justify_content: JustifyContent::Center,
+            flex_direction: FlexDirection::Column,
             ..default()
         },
         OnMenuScreen,
         OnMainMenuScreen,
     ))
     .with_children( |parent| {
+        // MAIN TITLE
         parent.spawn((
             Text::new("Bird Invaders"),
-            title_font,
+            title_font.clone(),
             TextColor(TEXT_COLOR),
             Node {
                 margin: UiRect::all(Val::Px(50.0)),
                 ..default()
             },
-            UIText
         ));
-        // ITS BUTTON TIME
+        // SETTINGS BUTTON
         parent.spawn((
             Button,
             button_node.clone(),
@@ -159,28 +154,51 @@ fn main_menu_setup_sys(
         .with_children( |parent| {
             parent.spawn((
                 Text::new("Settings"),
-                button_font,
+                button_font.clone(),
                 TextColor(TEXT_COLOR),
                 Node {
                     margin: UiRect::all(Val::Px(50.0)),
                     ..default()
                 },
-                UIText
+            ));
+        });
+        // RESUME BUTTON
+        parent.spawn((
+            Button,
+            button_node.clone(),
+            BackgroundColor(BUTTON_DEFAULT_COLOR),
+            MenuButtonAction::Resume
+        ))
+        .with_children( |parent| {
+            parent.spawn((
+                Text::new("Resume"),
+                button_font.clone(),
+                TextColor(TEXT_COLOR),
+                Node {
+                    margin: UiRect::all(Val::Px(50.0)),
+                    ..default()
+                },
+            ));
+        });
+        // QUIT BUTTON
+        parent.spawn((
+            Button,
+            button_node.clone(),
+            BackgroundColor(BUTTON_DEFAULT_COLOR),
+            MenuButtonAction::Quit
+        ))
+        .with_children( |parent| {
+            parent.spawn((
+                Text::new("Quit"),
+                button_font.clone(),
+                TextColor(TEXT_COLOR),
+                Node {
+                    margin: UiRect::all(Val::Px(50.0)),
+                    ..default()
+                },
             ));
         });
     });
-}
-
-fn unmenu_yourself(
-    keys: Res<ButtonInput<KeyCode>>,
-    mut game_state: ResMut<NextState<GameState>>,
-    mut menu_state: ResMut<NextState<MenuState>>
-) {
-    if keys.just_pressed(KeyCode::KeyM) {
-        game_state.set(GameState::Game);
-        menu_state.set(MenuState::Disabled);
-        info!("WE GO BACK TO GAMING NOW, GAMERS!");
-    }
 }
 
 fn menu_button_action_sys(
@@ -216,10 +234,70 @@ fn menu_button_action_sys(
     }
 }
 
-// fn settings_menu_setup_sys (
-//     mut cmd: Commands
-// ) {
-//     cmd.spawn( // spawn some stuff
+fn settings_menu_setup_sys(
+    mut cmd: Commands,
+    asset_server: Res<AssetServer>,
+) {
+    let button_node = Node {
+        width: Val::Px(500.0),
+        height: Val::Px(65.0),
+        margin: UiRect::all(Val::Px(20.0)),
+        justify_content: JustifyContent::Center,
+        align_items: AlignItems::Center,
+        ..default()
+    };
+    let button_font = TextFont {
+        font: asset_server.load(PathBuf::from("fonts").join("NewHiScore.ttf")),
+        font_size: 50.,
+        ..default()
+    };
+    let title_font = TextFont {
+        font: asset_server.load(PathBuf::from("fonts").join("NewHiScore.ttf")),
+        font_size: 90.,
+        ..default()
+    };
 
-//     );
-// }
+    cmd.spawn((
+        // this is the main bit that encapsulates the whole settings menu
+        Node {
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::Center,
+            flex_direction: FlexDirection::Column,
+            ..default()
+        },
+        OnMenuScreen,
+        OnSettingsMenuScreen,
+    ))
+    .with_children( |parent| {
+        // SETTINGS TITLE
+        parent.spawn((
+            Text::new("Settings"),
+            title_font.clone(),
+            TextColor(TEXT_COLOR),
+            Node {
+                margin: UiRect::all(Val::Px(50.0)),
+                ..default()
+            },
+        ));
+        // BACK TO MAIN MENU BUTTON
+        parent.spawn((
+            Button,
+            button_node.clone(),
+            BackgroundColor(BUTTON_DEFAULT_COLOR),
+            MenuButtonAction::BackToMainMenu
+        ))
+        .with_children( |parent| {
+            parent.spawn((
+                Text::new("Main Menu"),
+                button_font.clone(),
+                TextColor(TEXT_COLOR),
+                Node {
+                    margin: UiRect::all(Val::Px(50.0)),
+                    ..default()
+                },
+            ));
+        });
+    });
+}
