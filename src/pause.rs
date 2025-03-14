@@ -12,7 +12,7 @@ impl Plugin for PausePlugin {
         .add_systems(OnEnter(GameState::Pause), pause_setup_sys)
         .add_systems(Update, (
             button_color_sys,
-            pause_menu_listener_sys,
+            // pause_menu_listener_sys,
             unpause_listener_sys,
             menu_button_action_sys
         ).run_if(in_state(GameState::Pause)))

@@ -3,6 +3,8 @@ use std::f32::consts::PI;
 use bevy::{prelude::*, utils::HashMap};
 use rand::Rng;
 
+use crate::level::{Level, LevelAsset};
+
 use super::asset::BirdAssetHandle;
 
 #[derive(Component)]
@@ -16,14 +18,15 @@ pub(super) fn bird_spawn_sys(
     spawners: Query<(Entity, &BirdSpawner, &Transform)>,
     time: Res<Time>,
     asset_server: Res<AssetServer>,
+    level: Res<Level>,
+    level_assets: Res<Assets<LevelAsset>>,
     mut last_entity_spawn_time: Local<HashMap<Entity, f32>>,
     mut cmd: Commands,
 ) {
     let mut rng = rand::rng();
-    let birds: Vec<&str> = vec![
-        "birds/bluebird.ron",
-        "birds/swallow.ron",
-    ];
+
+    let level_asset = level_assets.get(&level.level_handle).unwrap();
+    let birds:  Vec<&str> = level_asset.birds.iter().map(|b| b.asset.as_str()).collect();
 
     for (entity, spawner, spawner_tf) in spawners.iter() {
         let time_now = time.elapsed_secs();
@@ -36,10 +39,10 @@ pub(super) fn bird_spawn_sys(
         if cooldown_expired && do_we_bird_yet {
             last_entity_spawn_time.insert(entity, time_now);
 
-            let bird_entity = cmd.spawn((
+            cmd.spawn((
                 BirdAssetHandle(asset_server.load(birds[rng.random_range(0..birds.len())])),
-                spawner_tf.clone() // birbs will clip into spawners but spawners are only rendered for debugging
-            )).id();
+                spawner_tf.clone()
+            ));
         }
 
     }

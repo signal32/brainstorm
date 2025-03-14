@@ -8,15 +8,15 @@ use spawner::*;
 use bevy::prelude::*;
 use rand::Rng;
 
-use crate::{physics::{ColliderContactEvent, Velocity}, GameState};
+use crate::{physics::{ColliderContactEvent, Velocity}, util::ron_asset_loader::RonAssetLoader, GameState};
 
 pub struct BirdPlugin;
 
 impl Plugin for BirdPlugin {
     fn build(&self, app: &mut App) {
         app.init_asset::<BirdAsset>();
-        app.init_asset_loader::<BirdAssetLoader>();
-        app.add_systems(OnEnter(GameState::Game), (
+        app.init_asset_loader::<RonAssetLoader<BirdAsset>>();
+        app.add_systems(OnEnter(GameState::Loading), (
             setup_sys,
             setup_spawner_sys,
         ));

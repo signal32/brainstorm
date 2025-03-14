@@ -3,9 +3,12 @@ mod physics;
 mod menu;
 mod pause;
 mod bird;
+mod util;
+mod level;
 
 use bevy::prelude::*;
 use bird::BirdPlugin;
+use level::LevelPlugin;
 use physics::PhysicsPlugin;
 use projectile::{ProjectileLauncher, ProjectilePlugin};
 use menu::MenuPlugin;
@@ -20,6 +23,7 @@ fn main() {
             MenuPlugin,
             PausePlugin,
             BirdPlugin,
+            LevelPlugin::default(),
         ))
         .init_state::<GameState>()
         .add_systems(Startup, setup_sys)
@@ -37,7 +41,8 @@ pub(crate) enum GameState {
     Pause,
     #[default]
     Menu,
-    Splash
+    Splash,
+    Loading,
 }
 
 // a label component to tell us which things are loaded in the Game GameState
