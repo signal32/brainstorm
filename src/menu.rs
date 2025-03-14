@@ -12,12 +12,15 @@ impl Plugin for MenuPlugin {
         // handle stuff about whether we are in the menu GameState
         .add_systems(OnEnter(GameState::Menu), menu_setup_sys)
         .add_systems(Update, (
-            button_sys.run_if(in_state(GameState::Menu)),
-            unmenu_yourself.run_if(in_state(GameState::Menu))
-        ))
+            button_sys,
+            unmenu_yourself
+        ).run_if(in_state(GameState::Menu)))
         .add_systems(OnExit(GameState::Menu), despawn_screen::<OnMenuScreen>)
         // handle the Main Menu gubbins
         .add_systems(OnEnter(MenuState::MainMenu), main_menu_setup_sys)
+        .add_systems(Update, (
+            menu_button_action_sys
+        ).run_if(in_state(MenuState::MainMenu)))
         .add_systems(OnExit(MenuState::MainMenu), despawn_screen::<OnMainMenuScreen>);
         // handle the settings screen gubbins
         // .add_systems(OnEnter(MenuState::Settings), settings_menu_setup_sys)
@@ -177,6 +180,39 @@ fn unmenu_yourself(
         game_state.set(GameState::Game);
         menu_state.set(MenuState::Disabled);
         info!("WE GO BACK TO GAMING NOW, GAMERS!");
+    }
+}
+
+fn menu_button_action_sys(
+    mut app_exit_events: EventWriter<AppExit>,
+    mut game_state: ResMut<NextState<GameState>>,
+    mut menu_state: ResMut<NextState<MenuState>>,
+    interactions: Query<
+        (&Interaction, &MenuButtonAction),
+        (Changed<Interaction>, With<Button>),
+    >,
+) {
+    for (interaction, menu_button_action) in &interactions {
+        if *interaction == Interaction::Pressed {
+            match menu_button_action {
+                MenuButtonAction::Quit => {
+                    app_exit_events.send(AppExit::Success);
+                }
+                MenuButtonAction::Settings => {
+                    menu_state.set(MenuState::Settings);
+                    info!("IM SO GLAD! (we are in settings menu state now thats nice)")
+                }
+                MenuButtonAction::BackToMainMenu => {
+                    menu_state.set(MenuState::MainMenu);
+                    info!("back to main menu")
+                }
+                MenuButtonAction::Resume => {
+                    game_state.set(GameState::Game);
+                    menu_state.set(MenuState::Disabled);
+                    info!("resume the game yippeeee birds be flyin")
+                }
+            }
+        }
     }
 }
 

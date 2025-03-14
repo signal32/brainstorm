@@ -27,12 +27,13 @@ fn main() {
         .add_event::<BirdSpawnEvent>()
         .add_systems(Startup, setup_sys)
         .add_systems(Update, (
-            update_bird_tweet_sys.run_if(in_state(GameState::Game)),
-            player_move_sys.run_if(in_state(GameState::Game)),
-            bird_spawn_sys.run_if(in_state(GameState::Game)),
-            pause_menu_listener_sys.run_if(in_state(GameState::Game)),
-            bird_hit_sys.run_if(in_state(GameState::Game))
-        ))
+            update_bird_tweet_sys,
+            player_move_sys,
+            bird_spawn_sys,
+            pause_menu_listener_sys,
+            bird_hit_sys
+        ).run_if(in_state(GameState::Game)))
+        //.add_systems(OnExit(GameState::Game), despawn_screen::<OnGameScreen>)
         .run();
 }
 
