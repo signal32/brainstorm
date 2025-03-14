@@ -1,5 +1,6 @@
 use bevy::{prelude::*};
-use super::{despawn_screen, GameState};
+use std::{path::PathBuf};
+use super::{despawn_screen, GameState, UIText};
 
 pub struct MenuPlugin;
 
@@ -7,11 +8,20 @@ impl Plugin for MenuPlugin {
     fn build(&self, app: &mut App) {
         app
         // when we enter Menu GameState, spawn in the menu items
-        //.add_systems(OnEnter(GameState::Menu), menu_setup_sys)
-        // while we are in this state, run button listener
-        .add_systems(Update, button_sys)
-        // when we leave this state, despawn all the entities that were needed for this screen
-        .add_systems(OnExit(GameState::Menu), despawn_screen::<OnMenuScreen>);
+        .init_state::<MenuState>()
+        // handle stuff about whether we are in the menu GameState
+        .add_systems(OnEnter(GameState::Menu), menu_setup_sys)
+        .add_systems(Update, (
+            button_sys.run_if(in_state(GameState::Menu)),
+            unmenu_yourself.run_if(in_state(GameState::Menu))
+        ))
+        .add_systems(OnExit(GameState::Menu), despawn_screen::<OnMenuScreen>)
+        // handle the Main Menu gubbins
+        .add_systems(OnEnter(MenuState::MainMenu), main_menu_setup_sys)
+        .add_systems(OnExit(MenuState::MainMenu), despawn_screen::<OnMainMenuScreen>);
+        // handle the settings screen gubbins
+        // .add_systems(OnEnter(MenuState::Settings), settings_menu_setup_sys)
+        // .add_systems(OnExit(MenuState::Settings), despawn_screen::<OnSettingsScreen>);
     }
 }
 
@@ -19,14 +29,29 @@ impl Plugin for MenuPlugin {
 #[derive(Component)]
 struct OnMenuScreen;
 
+#[derive(Component)]
+struct OnMainMenuScreen;
+
+#[derive(Component)]
+struct OnSettingsScreen;
+
 // define the menu states
-// #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
-// enum MenuState {
-//     Menu,
-//     Settings,
-//     #[default]
-//     Disabled
-// }
+#[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
+enum MenuState {
+    MainMenu,
+    Settings,
+    #[default]
+    Disabled
+}
+
+// all the actions that a menu button can possibly do
+#[derive(Component)]
+enum MenuButtonAction {
+    Settings,
+    BackToMainMenu,
+    Resume,
+    Quit
+}
 
 // set some color constants -- eventually this can maybe be configurable?
 // this doestnt work and idk why yet
@@ -35,8 +60,10 @@ struct OnMenuScreen;
 // const BUTTON_PRESSED_COLOR: Color = Color::srgb_u8(49, 104, 120);
 
 const BUTTON_DEFAULT_COLOR: Color = Color::srgb(0.15, 0.15, 0.15);
-const BUTTON_HOVER_COLOR: Color = Color::srgb(0.15, 0.15, 0.15);
-const BUTTON_PRESSED_COLOR: Color = Color::srgb(0.15, 0.15, 0.15);
+const BUTTON_HOVER_COLOR: Color = Color::srgb(0.30, 0.30, 0.30);
+const BUTTON_PRESSED_COLOR: Color = Color::srgb(0.45, 0.45, 0.45);
+
+const TEXT_COLOR: Color = Color::srgb(0.9, 0.9, 0.9);
 
 
 fn button_sys (
@@ -68,6 +95,95 @@ fn button_sys (
     }
 }
 
-// fn menu_setup_sys {
-    
+fn menu_setup_sys(mut menu_state: ResMut<NextState<MenuState>>) {
+    menu_state.set(MenuState::MainMenu);
+    info!("in theory the MenuState should now be MainMenu")
+}
+
+fn main_menu_setup_sys(
+    mut cmd: Commands,
+    asset_server: Res<AssetServer>,
+) {
+    let button_node = Node {
+        width: Val::Px(300.0),
+        height: Val::Px(65.0),
+        margin: UiRect::all(Val::Px(20.0)),
+        justify_content: JustifyContent::Center,
+        align_items: AlignItems::Center,
+        ..default()
+    };
+    let button_font = TextFont {
+        font: asset_server.load(PathBuf::from("fonts").join("NewHiScore.ttf")),
+        font_size: 60.,
+        ..default()
+    };
+    let title_font = TextFont {
+        font: asset_server.load(PathBuf::from("fonts").join("NewHiScore.ttf")),
+        font_size: 120.,
+        ..default()
+    };
+
+    cmd.spawn((
+        // this is the main bit that encapsulates the whole main menu
+        Node {
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::Center,
+            ..default()
+        },
+        OnMenuScreen,
+        OnMainMenuScreen,
+    ))
+    .with_children( |parent| {
+        parent.spawn((
+            Text::new("Bird Invaders"),
+            title_font,
+            TextColor(TEXT_COLOR),
+            Node {
+                margin: UiRect::all(Val::Px(50.0)),
+                ..default()
+            },
+            UIText
+        ));
+        // ITS BUTTON TIME
+        parent.spawn((
+            Button,
+            button_node.clone(),
+            BackgroundColor(BUTTON_DEFAULT_COLOR),
+            MenuButtonAction::Settings
+        ))
+        .with_children( |parent| {
+            parent.spawn((
+                Text::new("Settings"),
+                button_font,
+                TextColor(TEXT_COLOR),
+                Node {
+                    margin: UiRect::all(Val::Px(50.0)),
+                    ..default()
+                },
+                UIText
+            ));
+        });
+    });
+}
+
+fn unmenu_yourself(
+    keys: Res<ButtonInput<KeyCode>>,
+    mut game_state: ResMut<NextState<GameState>>,
+    mut menu_state: ResMut<NextState<MenuState>>
+) {
+    if keys.just_pressed(KeyCode::KeyM) {
+        game_state.set(GameState::Game);
+        menu_state.set(MenuState::Disabled);
+        info!("WE GO BACK TO GAMING NOW, GAMERS!");
+    }
+}
+
+// fn settings_menu_setup_sys (
+//     mut cmd: Commands
+// ) {
+//     cmd.spawn( // spawn some stuff
+
+//     );
 // }

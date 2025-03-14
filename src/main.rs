@@ -18,19 +18,18 @@ fn main() {
             PhysicsPlugin,
             ProjectilePlugin,
             MenuPlugin,
+            PausePlugin
         ))
         .init_state::<GameState>()
         .add_event::<BirdSpawnEvent>()
         .add_systems(Startup, setup_sys)
-        //.add_systems(OnEnter(GameState::Game), resume_game_sys)
         .add_systems(Update, (
             update_bird_tweet_sys.run_if(in_state(GameState::Game)),
             player_move_sys.run_if(in_state(GameState::Game)),
             bird_spawn_sys.run_if(in_state(GameState::Game)),
-            pause_listener_sys.run_if(in_state(GameState::Game)),
+            pause_menu_listener_sys.run_if(in_state(GameState::Game)),
             bird_hit_sys.run_if(in_state(GameState::Game))
         ))
-        //.add_systems(OnExit(GameState::Game), despawn_screen::<OnGameScreen>)
         .run();
 }
 
@@ -134,7 +133,6 @@ fn setup_sys(
         UIText,
         Text::new("howdy!".to_string()), // initial greeting before any birds show up
         TextFont {
-            // lolz we are gonna have issues with the \ / windows/linux issue so i need to get myself on linux right this second lmfao
             font: asset_server.load(PathBuf::from("fonts").join("NewHiScore.ttf")),
             font_size: 50.,
             ..default()
@@ -254,14 +252,19 @@ fn bird_hit_sys(
 }
 
 
-fn pause_listener_sys(
+fn pause_menu_listener_sys(
     keys: Res<ButtonInput<KeyCode>>,
     mut game_state: ResMut<NextState<GameState>>,
 ) {
     if keys.just_pressed(KeyCode::Escape) {
-        // change GameState
+        // change GameState to Pause
         game_state.set(GameState::Pause);
         info!("game state changed to paused!");
+    }
+    if keys.just_pressed(KeyCode::KeyM) {
+        // change GameState to Menu
+        game_state.set(GameState::Menu);
+        info!("ur at menu (what do u mean ur at menu) im at menu (why are you buying clothes at the menu store) FUCK YOU /ref")
     }
 }
 
