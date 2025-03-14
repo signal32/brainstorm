@@ -9,7 +9,7 @@ use bevy::{prelude::*, utils::HashMap};
 use bird::{BirdAssetHandle, BirdPlugin};
 use physics::{Collider, ColliderContactEvent, PhysicsPlugin, Velocity};
 use projectile::{ProjectileLauncher, ProjectilePlugin};
-use menu::{MenuPlugin, MenuState};
+use menu::{MenuPlugin};
 use pause::{PausePlugin};
 use rand::prelude::*;
 
@@ -30,10 +30,9 @@ fn main() {
             update_bird_tweet_sys,
             player_move_sys,
             bird_spawn_sys,
-            pause_menu_listener_sys,
-            bird_hit_sys
+            bird_hit_sys,
+            pause_menu_listener_sys
         ).run_if(in_state(GameState::Game)))
-        //.add_systems(OnExit(GameState::Game), despawn_screen::<OnGameScreen>)
         .run();
 }
 
