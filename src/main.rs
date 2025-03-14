@@ -4,9 +4,11 @@ mod menu;
 mod pause;
 mod bird;
 mod util;
+mod level;
 
 use bevy::prelude::*;
 use bird::BirdPlugin;
+use level::LevelPlugin;
 use physics::PhysicsPlugin;
 use projectile::{ProjectileLauncher, ProjectilePlugin};
 use menu::MenuPlugin;
@@ -21,6 +23,7 @@ fn main() {
             MenuPlugin,
             PausePlugin,
             BirdPlugin,
+            LevelPlugin::default(),
         ))
         .init_state::<GameState>()
         .add_systems(Startup, setup_sys)
@@ -36,10 +39,11 @@ fn main() {
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
 pub(crate) enum GameState {
     #[default] // for now i want it to default to game state, i.e. launch straight in with reckless abandon
+    Loading,
     Game,
     Pause,
     Menu,
-    Splash
+    Splash,
 }
 
 // a label component to tell us which things are loaded in the Game GameState
