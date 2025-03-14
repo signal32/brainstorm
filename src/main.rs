@@ -20,6 +20,7 @@ fn main() {
             PhysicsPlugin,
             ProjectilePlugin,
             MenuPlugin,
+            PausePlugin,
             BirdPlugin,
         ))
         .init_state::<GameState>()
