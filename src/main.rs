@@ -1,12 +1,16 @@
 mod projectile;
 mod physics;
+mod menu;
+mod pause;
 mod bird;
 
 use std::{f32::consts::PI, path::PathBuf};
-use bevy::{prelude::*, utils::HashMap};
+use bevy::{prelude::*, utils::HashMap, winit::WinitSettings};
 use bird::{BirdAssetHandle, BirdPlugin};
 use physics::{Collider, ColliderContactEvent, PhysicsPlugin, Velocity};
 use projectile::{ProjectileLauncher, ProjectilePlugin};
+use menu::{MenuPlugin};
+use pause::{PausePlugin};
 use rand::prelude::*;
 
 fn main() {
@@ -15,18 +19,36 @@ fn main() {
             DefaultPlugins.set(ImagePlugin::default_nearest()),
             PhysicsPlugin,
             ProjectilePlugin,
+            MenuPlugin,
             BirdPlugin,
         ))
+        .init_state::<GameState>()
         .add_event::<BirdSpawnEvent>()
         .add_systems(Startup, setup_sys)
+        //.add_systems(OnEnter(GameState::Game), resume_game_sys)
         .add_systems(Update, (
-            update_bird_tweet_sys,
-            player_move_sys,
-            bird_spawn_sys,
-            bird_hit_sys,
+            update_bird_tweet_sys.run_if(in_state(GameState::Game)),
+            player_move_sys.run_if(in_state(GameState::Game)),
+            bird_spawn_sys.run_if(in_state(GameState::Game)),
+            pause_listener_sys.run_if(in_state(GameState::Game)),
+            bird_hit_sys.run_if(in_state(GameState::Game))
         ))
+        //.add_systems(OnExit(GameState::Game), despawn_screen::<OnGameScreen>)
         .run();
 }
+
+#[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
+enum GameState {
+    #[default] // for now i want it to default to game state, i.e. launch straight in with reckless abandon
+    Game,
+    Pause,
+    Menu,
+    Splash
+}
+
+// a label component to tell us which things are loaded in the Game GameState
+#[derive(Component)]
+struct OnGameScreen;
 
 #[derive(Component)]
 struct Bird {
@@ -84,6 +106,7 @@ fn setup_sys(
         Mesh2d(meshes.add(Annulus::new(25.0, 50.0))),
         MeshMaterial2d(materials.add(Color::WHITE)),
         Transform::from_xyz(0., - window_height / 2. + 75., 0.),
+        OnGameScreen,
     ));
 
     let mut rng = rand::rng();
@@ -106,6 +129,7 @@ fn setup_sys(
                 rng.random_range(0. .. 1.),
             ))),
             transform,
+            OnGameScreen,
         ));
     }
 
@@ -124,7 +148,8 @@ fn setup_sys(
             bottom: Val::Px(5.),
             right: Val::Px(5.),
             ..default()
-        }
+        },
+        OnGameScreen,
     ));
 }
 
@@ -214,5 +239,25 @@ fn bird_hit_sys(
             let rotate_rads = if rng.random_bool(0.5) { -2. } else { 2. };
             tf.rotate_local_z(rotate_rads);
         }
+    }
+}
+
+
+fn pause_listener_sys(
+    keys: Res<ButtonInput<KeyCode>>,
+    mut game_state: ResMut<NextState<GameState>>,
+) {
+    if keys.just_pressed(KeyCode::Escape) {
+        // change GameState
+        game_state.set(GameState::Pause);
+        info!("game state changed to paused!");
+    }
+}
+
+// stole this directly from an example but it seems a sensible way of removing 
+// unneeded Entities with a given Component indiscriminantly
+fn despawn_screen<T: Component>(to_despawn: Query<Entity, With<T>>, mut commands: Commands) {
+    for entity in &to_despawn {
+        commands.entity(entity).despawn_recursive();
     }
 }
