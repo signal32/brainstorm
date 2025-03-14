@@ -110,25 +110,18 @@ fn setup_sys(
         OnGameScreen,
     ));
 
-    let mut rng = rand::rng();
     for i in 0..bird_count {
         let x = ((window_width - bird_padding) / (bird_count - 1) as f32) * i as f32;
 
         let mut transform = Transform::from_xyz(
             x - (window_width - bird_padding) * 0.5 ,
-            window_height * 0.5,
+            (window_height * 0.5) + 100.,
             50.
         );
         transform.rotate_local_x(PI);
 
         cmd.spawn((
             BirdSpawner { spawn_probability: 0.001, cooldown: 2. },
-            Mesh2d(meshes.add(Rhombus::new(25.0, 50.0))),
-            MeshMaterial2d(materials.add(Color::linear_rgb(
-                rng.random_range(0. .. 1.),
-                rng.random_range(0. .. 1.),
-                rng.random_range(0. .. 1.),
-            ))),
             transform,
             OnGameScreen,
         ));
@@ -255,7 +248,7 @@ fn pause_listener_sys(
     }
 }
 
-// stole this directly from an example but it seems a sensible way of removing 
+// stole this directly from an example but it seems a sensible way of removing
 // unneeded Entities with a given Component indiscriminantly
 fn despawn_screen<T: Component>(to_despawn: Query<Entity, With<T>>, mut commands: Commands) {
     for entity in &to_despawn {
