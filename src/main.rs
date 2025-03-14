@@ -38,9 +38,10 @@ fn main() {
 
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States, Resource)]
 enum GameState {
-    #[default] // for now i want it to default to game state, i.e. launch straight in with reckless abandon
+//    #[default] // for now i want it to default to game state, i.e. launch straight in with reckless abandon
     Game,
     Pause,
+    #[default]
     Menu,
     Splash
 }

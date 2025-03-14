@@ -50,7 +50,7 @@ pub enum MenuState {
 enum MenuButtonAction {
     Settings,
     BackToMainMenu,
-    Resume,
+    NewGame,
     Quit
 }
 
@@ -144,6 +144,24 @@ fn main_menu_setup_sys(
                 ..default()
             },
         ));
+         // NEW GAME BUTTON
+        parent.spawn((
+            Button,
+            button_node.clone(),
+            BackgroundColor(BUTTON_DEFAULT_COLOR),
+            MenuButtonAction::NewGame
+        ))
+        .with_children( |parent| {
+            parent.spawn((
+                Text::new("Play"),
+                button_font.clone(),
+                TextColor(TEXT_COLOR),
+                Node {
+                    margin: UiRect::all(Val::Px(50.0)),
+                    ..default()
+                },
+            ));
+        });
         // SETTINGS BUTTON
         parent.spawn((
             Button,
@@ -154,24 +172,6 @@ fn main_menu_setup_sys(
         .with_children( |parent| {
             parent.spawn((
                 Text::new("Settings"),
-                button_font.clone(),
-                TextColor(TEXT_COLOR),
-                Node {
-                    margin: UiRect::all(Val::Px(50.0)),
-                    ..default()
-                },
-            ));
-        });
-        // RESUME BUTTON
-        parent.spawn((
-            Button,
-            button_node.clone(),
-            BackgroundColor(BUTTON_DEFAULT_COLOR),
-            MenuButtonAction::Resume
-        ))
-        .with_children( |parent| {
-            parent.spawn((
-                Text::new("Resume"),
                 button_font.clone(),
                 TextColor(TEXT_COLOR),
                 Node {
@@ -224,7 +224,7 @@ fn menu_button_action_sys(
                     menu_state.set(MenuState::MainMenu);
                     info!("back to main menu")
                 }
-                MenuButtonAction::Resume => {
+                MenuButtonAction::NewGame => {
                     game_state.set(GameState::Game);
                     menu_state.set(MenuState::Disabled);
                     info!("resume the game yippeeee birds be flyin")
