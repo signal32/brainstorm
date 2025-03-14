@@ -1,0 +1,7 @@
+BirdAsset (
+    name: "Swallow",
+    hunger: 3,
+    size: (50, 50),
+    sprite: "sprites/swallow.png",
+    velocity: 150.0,
+)
