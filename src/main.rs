@@ -3,6 +3,7 @@ mod physics;
 mod menu;
 mod pause;
 mod bird;
+mod util;
 
 use std::{f32::consts::PI, path::PathBuf};
 use bevy::{prelude::*, utils::HashMap, winit::WinitSettings};

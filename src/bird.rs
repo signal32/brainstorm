@@ -1,18 +1,17 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use bevy::{
-    asset::{io::Reader, AssetLoader, LoadContext},
     prelude::*,
     reflect::TypePath,
 };
 use serde::Deserialize;
-use crate::{physics::{Collider, Velocity}, Bird};
+use crate::{physics::{Collider, Velocity}, util::ron_asset_loader::RonAssetLoader, Bird};
 
 pub struct BirdPlugin;
 
 impl Plugin for BirdPlugin {
     fn build(&self, app: &mut App) {
         app.init_asset::<BirdAsset>();
-        app.init_asset_loader::<BirdAssetLoader>();
+        app.init_asset_loader::<RonAssetLoader<BirdAsset>>();
         app.add_systems(FixedPostUpdate, load_bird_assets_sys);
     }
 }
@@ -52,36 +51,11 @@ fn load_bird_assets_sys(
 }
 
 
-#[derive(Asset, TypePath, Debug, Deserialize)]
+#[derive(Asset, TypePath, Debug, Deserialize, Default)]
 pub struct BirdAsset {
     name: String,
     hunger: i8,
     size: Vec2,
     sprite: PathBuf,
     velocity: f32,
-}
-
-#[derive(Default)]
-struct BirdAssetLoader;
-
-impl AssetLoader for BirdAssetLoader {
-    type Asset = BirdAsset;
-    type Settings = ();
-    type Error = Box<dyn std::error::Error + Send + Sync>;
-
-    async fn load(
-        &self,
-        reader: &mut dyn Reader,
-        _settings: &(),
-        _load_context: &mut LoadContext<'_>,
-    ) -> Result<Self::Asset, Self::Error> {
-        let mut bytes = Vec::new();
-        reader.read_to_end(&mut bytes).await?;
-        let custom_asset = ron::de::from_bytes::<BirdAsset>(&bytes)?;
-        Ok(custom_asset)
-    }
-
-    fn extensions(&self) -> &[&str] {
-        &["ron"]
-    }
 }
