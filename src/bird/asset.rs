@@ -1,21 +1,12 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use bevy::{
     asset::{io::Reader, AssetLoader, LoadContext},
     prelude::*,
     reflect::TypePath,
 };
 use serde::Deserialize;
-use crate::{physics::{Collider, Velocity}, Bird};
-
-pub struct BirdPlugin;
-
-impl Plugin for BirdPlugin {
-    fn build(&self, app: &mut App) {
-        app.init_asset::<BirdAsset>();
-        app.init_asset_loader::<BirdAssetLoader>();
-        app.add_systems(FixedPostUpdate, load_bird_assets_sys);
-    }
-}
+use crate::physics::{Collider, Velocity};
+use super::Bird;
 
 
 /// Denotes an entity as being a bird, but loaded from a file.
@@ -24,7 +15,9 @@ impl Plugin for BirdPlugin {
 #[derive(Debug, Component)]
 pub struct BirdAssetHandle(pub Handle<BirdAsset>);
 
-fn load_bird_assets_sys(
+/// Loads asset file and spawns remaining [Bird] components
+/// on entities with a [BirdAssetHandle].
+pub(super) fn load_bird_assets_sys(
     mut cmd: Commands,
     bird_assets: Query<(Entity, &BirdAssetHandle), Without<Bird>>,
     asset_server: Res<AssetServer>,
@@ -62,7 +55,7 @@ pub struct BirdAsset {
 }
 
 #[derive(Default)]
-struct BirdAssetLoader;
+pub(super) struct BirdAssetLoader;
 
 impl AssetLoader for BirdAssetLoader {
     type Asset = BirdAsset;
