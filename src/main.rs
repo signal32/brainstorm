@@ -6,18 +6,49 @@ mod bird;
 mod util;
 mod level;
 
-use bevy::prelude::*;
+use bevy::{prelude::*, window::WindowResolution};
 use bird::BirdPlugin;
+use clap::Parser;
 use level::LevelPlugin;
 use physics::PhysicsPlugin;
 use projectile::{ProjectileLauncher, ProjectilePlugin};
 use menu::MenuPlugin;
 use pause::PausePlugin;
 
+#[derive(Parser, Debug)]
+#[clap(author, version, about, long_about = None)]
+struct Args {
+    #[arg(long)]
+    window_width: Option<f32>,
+
+    #[arg(long)]
+    window_height: Option<f32>,
+
+    #[arg(long)]
+    window_monitor_index: Option<usize>,
+}
+
 fn main() {
+    let args = Args::parse();
     App::new()
         .add_plugins((
-            DefaultPlugins.set(ImagePlugin::default_nearest()),
+            DefaultPlugins
+                .set(ImagePlugin::default_nearest())
+                .set(WindowPlugin {
+                    primary_window: Some(Window {
+                        title: format!("Bird Invaders {}", env!("CARGO_PKG_VERSION")),
+                        position: WindowPosition::Centered(match args.window_monitor_index {
+                            Some(index) => MonitorSelection::Index(index),
+                            None => MonitorSelection::Current,
+                        }),
+                        resolution: WindowResolution::new(
+                            args.window_width.unwrap_or(1600.),
+                            args.window_height.unwrap_or(900.),
+                        ),
+                        ..default()
+                    }),
+                    ..default()
+                },),
             PhysicsPlugin,
             ProjectilePlugin,
             MenuPlugin,
