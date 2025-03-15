@@ -8,7 +8,7 @@ use spawner::*;
 use bevy::prelude::*;
 use rand::Rng;
 
-use crate::{physics::{ColliderContactEvent, Velocity}, util::ron_asset_loader::RonAssetLoader, GameState};
+use crate::{level::Level, physics::{ColliderContactEvent, Velocity}, util::ron_asset_loader::RonAssetLoader, GameState};
 
 pub struct BirdPlugin;
 
@@ -43,6 +43,7 @@ impl Bird {
 fn bird_hit_sys(
     mut contact_ev: EventReader<ColliderContactEvent>,
     mut birds: Query<(&mut Velocity, &mut Transform), With<Bird>>,
+    mut level: ResMut<Level>,
 ) {
     let mut rng = rand::rng();
     for ev in contact_ev.read() {
@@ -60,16 +61,19 @@ fn bird_hit_sys(
             velocity.0 *= 2.;
             let rotate_rads = if rng.random_bool(0.5) { -2. } else { 2. };
             tf.rotate_local_z(rotate_rads);
+
+            level.score += 10;
         }
     }
 }
 
 fn update_bird_tweet_sys(
+    mut bird_text: Single<&mut Text, With<BirdTweetText>>,
     birds: Query<&Bird, Added<Bird>>,
-    mut bird_text: Single<&mut Text, With<BirdTweetText>>
+    level: Res<Level>,
 ) {
     for bird in birds.iter() {
-        bird_text.0 = format!("tweet i am a {}", bird.name);
+        bird_text.0 = format!("Score {}\ntweet i am a {}", level.score, bird.name);
     }
 }
 
@@ -85,13 +89,13 @@ fn setup_sys(
     // Otherwise another gets added each time we enter game state which causes a panic elsewhere.
     once!(cmd.spawn((
         BirdTweetText,
-        Text::new("howdy!".to_string()), // initial greeting before any birds show up
+        Text::new("Feed the birds!".to_string()), // initial greeting before any birds show up
         TextFont {
             font: asset_server.load(PathBuf::from("fonts").join("NewHiScore.ttf")),
             font_size: 50.,
             ..default()
         },
-        TextLayout::new_with_justify(JustifyText::Center),
+        TextLayout::new_with_justify(JustifyText::Right),
         Node {
             position_type: PositionType::Absolute,
             bottom: Val::Px(5.),
