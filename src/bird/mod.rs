@@ -30,7 +30,10 @@ impl Plugin for BirdPlugin {
 #[derive(Component)]
 struct Bird {
     name: String,
+    /// Units of food required to satisfy hunger
     hunger: i8,
+    /// Base points to grant player on being fed unit of food
+    on_feed_points: u32,
 }
 
 impl Bird {
@@ -42,7 +45,7 @@ impl Bird {
 /// Makes birds fly away from non bird entities that collide with them.
 fn bird_hit_sys(
     mut contact_ev: EventReader<ColliderContactEvent>,
-    mut birds: Query<(&mut Velocity, &mut Transform), With<Bird>>,
+    mut birds: Query<(&mut Velocity, &mut Transform, &mut Bird)>,
     mut level: ResMut<Level>,
 ) {
     let mut rng = rand::rng();
@@ -57,12 +60,16 @@ fn bird_hit_sys(
         else if let Ok(b) =  birds.get_mut(ev.b) { Some(b) }
         else { None };
 
-        if let Some((mut velocity, mut tf)) = bird {
-            velocity.0 *= 2.;
-            let rotate_rads = if rng.random_bool(0.5) { -2. } else { 2. };
-            tf.rotate_local_z(rotate_rads);
+        if let Some((mut velocity, mut tf, mut bird)) = bird {
+            bird.hunger -= 1;
+            level.score += bird.on_feed_points;
 
-            level.score += 10;
+            // fly away once no longer hungry
+            if bird.hunger == 0 {
+                velocity.0 *= 2.;
+                let rotate_rads = if rng.random_bool(0.5) { -2. } else { 2. };
+                tf.rotate_local_z(rotate_rads);
+            }
         }
     }
 }

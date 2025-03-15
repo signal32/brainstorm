@@ -39,6 +39,7 @@ pub(super) fn load_bird_assets_sys(
                 Bird {
                     name: asset.name.clone(),
                     hunger: asset.hunger,
+                    on_feed_points: asset.on_feed_points,
                 },
                 Velocity(asset.velocity),
                 Collider::Rectangle(Rectangle::from_size(asset.size)),
@@ -62,4 +63,5 @@ pub struct BirdAsset {
     size: Vec2,
     sprite: PathBuf,
     velocity: f32,
+    on_feed_points: u32,
 }
