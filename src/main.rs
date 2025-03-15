@@ -89,7 +89,6 @@ pub(crate) enum GameState {
     #[default]
     Menu,
     Splash,
-    Loading,
 }
 
 // a label component to tell us which things are loaded in the Game GameState
