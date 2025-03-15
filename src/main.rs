@@ -6,36 +6,83 @@ mod bird;
 mod util;
 mod level;
 
-use bevy::prelude::*;
+use std::path::PathBuf;
+
+use bevy::{prelude::*, window::WindowResolution};
 use bird::BirdPlugin;
+use clap::{Parser, ValueEnum};
 use level::LevelPlugin;
 use physics::PhysicsPlugin;
 use projectile::{ProjectileLauncher, ProjectilePlugin};
 use menu::MenuPlugin;
 use pause::PausePlugin;
 
+#[derive(Parser, Debug)]
+#[clap(author, version, about, long_about = None)]
+struct Args {
+    #[arg(long)]
+    window_width: Option<f32>,
+
+    #[arg(long)]
+    window_height: Option<f32>,
+
+    #[arg(long)]
+    window_monitor_index: Option<usize>,
+
+    #[arg(long)]
+    level: Option<String>,
+
+    #[arg(long)]
+    initial_state: Option<GameState>
+}
+
 fn main() {
-    App::new()
-        .add_plugins((
-            DefaultPlugins.set(ImagePlugin::default_nearest()),
+    let args = Args::parse();
+    let mut app = App::new();
+    app.add_plugins((
+            DefaultPlugins
+                .set(ImagePlugin::default_nearest())
+                .set(WindowPlugin {
+                    primary_window: Some(Window {
+                        title: format!("Bird Invaders {}", env!("CARGO_PKG_VERSION")),
+                        position: WindowPosition::Centered(match args.window_monitor_index {
+                            Some(index) => MonitorSelection::Index(index),
+                            None => MonitorSelection::Current,
+                        }),
+                        resolution: WindowResolution::new(
+                            args.window_width.unwrap_or(1600.),
+                            args.window_height.unwrap_or(900.),
+                        ),
+                        ..default()
+                    }),
+                    ..default()
+                },),
             PhysicsPlugin,
             ProjectilePlugin,
             MenuPlugin,
             PausePlugin,
             BirdPlugin,
-            LevelPlugin::default(),
-        ))
-        .init_state::<GameState>()
-        .add_systems(Startup, setup_sys)
-        .add_systems(Update, ((
-            player_move_sys,
-            pause_menu_listener_sys
-        ).run_if(in_state(GameState::Game)),
-        ))
-        .run();
+            match args.level {
+                Some(level) => LevelPlugin { default_level: PathBuf::from(level) },
+                None => LevelPlugin::default()
+            }
+    ));
+    app.add_systems(Startup, setup_sys);
+    app.add_systems(Update, ((
+        player_move_sys,
+        pause_menu_listener_sys
+    ).run_if(in_state(GameState::Game)),
+));
+
+    app.init_state::<GameState>();
+    if let Some(state) = args.initial_state {
+        app.insert_state(state);
+    }
+
+    app.run();
 }
 
-#[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
+#[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States, ValueEnum)]
 pub(crate) enum GameState {
     Game,
     Pause,

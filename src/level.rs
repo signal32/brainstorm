@@ -6,7 +6,7 @@ use serde::Deserialize;
 use crate::{util::ron_asset_loader::RonAssetLoader, GameState};
 
 pub struct LevelPlugin {
-    default_level: PathBuf
+    pub default_level: PathBuf
 }
 
 impl Default for LevelPlugin {

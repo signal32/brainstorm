@@ -1,0 +1,19 @@
+LevelAsset (
+    spawn_probability: 1,
+    spawn_cooldown: 1.0,
+    spawner_qty: 3,
+    birds: [
+        LevelBird (
+            asset: "birds/bluebird.ron",
+            spawn_probability: 10.0
+        ),
+        LevelBird (
+            asset: "birds/swallow.ron",
+            spawn_probability: 4.0
+        ),
+        LevelBird (
+            asset: "birds/swallow_long.ron",
+            spawn_probability: 0.5
+        ),
+    ],
+)
