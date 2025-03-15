@@ -1,4 +1,5 @@
-# brainstorm
+![](/assets/menu/splash.png)
+# brainstorm: bird invaders
 best game ever*
 
 ### Development
