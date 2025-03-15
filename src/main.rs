@@ -2,6 +2,7 @@ mod projectile;
 mod physics;
 mod menu;
 mod pause;
+mod splash;
 mod bird;
 mod util;
 mod level;
@@ -13,6 +14,7 @@ use physics::PhysicsPlugin;
 use projectile::{ProjectileLauncher, ProjectilePlugin};
 use menu::MenuPlugin;
 use pause::PausePlugin;
+use splash::SplashPlugin;
 
 fn main() {
     App::new()
@@ -22,11 +24,13 @@ fn main() {
             ProjectilePlugin,
             MenuPlugin,
             PausePlugin,
+            SplashPlugin,
             BirdPlugin,
             LevelPlugin::default(),
         ))
         .init_state::<GameState>()
         .add_systems(Startup, setup_sys)
+        .add_systems(OnExit(GameState::Splash), player_spawn_sys)// this is not a good fix for this,,, a bit janky,, it needs moving into its own PlayerPlugin tbh
         .add_systems(Update, ((
             player_move_sys,
             pause_menu_listener_sys
@@ -39,8 +43,8 @@ fn main() {
 pub(crate) enum GameState {
     Game,
     Pause,
-    #[default]
     Menu,
+    #[default]
     Splash,
     Loading,
 }
@@ -55,14 +59,18 @@ struct Player {
 }
 
 fn setup_sys(
+    mut cmd: Commands   
+) { 
+    cmd.spawn(Camera2d);
+}
+
+fn player_spawn_sys(
     mut cmd: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     windows: Query<&Window>
 ) {
     let window_height = windows.single().height();
-
-    cmd.spawn(Camera2d);
 
     cmd.spawn((
         Player { health: 100 },
@@ -74,7 +82,6 @@ fn setup_sys(
         Transform::from_xyz(0., - window_height / 2. + 75., 0.),
         OnGameScreen,
     ));
-
 }
 
 fn player_move_sys(
@@ -145,7 +152,7 @@ fn pause_menu_listener_sys(
 
 // stole this directly from an example but it seems a sensible way of removing
 // unneeded Entities with a given Component indiscriminantly
-fn despawn_screen<T: Component>(to_despawn: Query<Entity, With<T>>, mut commands: Commands) {
+fn despawn_entities<T: Component>(to_despawn: Query<Entity, With<T>>, mut commands: Commands) {
     for entity in &to_despawn {
         commands.entity(entity).despawn_recursive();
     }

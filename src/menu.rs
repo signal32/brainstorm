@@ -1,6 +1,6 @@
 use bevy::{prelude::*};
 use std::{path::PathBuf, sync::LazyLock};
-use super::{despawn_screen, pause_menu_listener_sys, GameState};
+use super::{despawn_entities, pause_menu_listener_sys, GameState};
 
 pub struct MenuPlugin;
 
@@ -16,13 +16,13 @@ impl Plugin for MenuPlugin {
 //            pause_menu_listener_sys, // uncomment once u certralise the logic for this
             menu_button_action_sys
         ).run_if(in_state(GameState::Menu)))
-        .add_systems(OnExit(GameState::Menu), despawn_screen::<OnMenuScreen>)
+        .add_systems(OnExit(GameState::Menu), despawn_entities::<OnMenuScreen>)
         // handle the Main Menu gubbins
         .add_systems(OnEnter(MenuState::MainMenu), main_menu_setup_sys)
-        .add_systems(OnExit(MenuState::MainMenu), despawn_screen::<OnMainMenuScreen>)
+        .add_systems(OnExit(MenuState::MainMenu), despawn_entities::<OnMainMenuScreen>)
         // handle the settings screen gubbins
         .add_systems(OnEnter(MenuState::Settings), settings_menu_setup_sys)
-        .add_systems(OnExit(MenuState::Settings), despawn_screen::<OnSettingsMenuScreen>);
+        .add_systems(OnExit(MenuState::Settings), despawn_entities::<OnSettingsMenuScreen>);
     }
 }
 
