@@ -1,5 +1,5 @@
 use bevy::{prelude::*};
-use std::{path::PathBuf};
+use std::{path::PathBuf, sync::LazyLock};
 use super::{despawn_screen, pause_menu_listener_sys, GameState};
 
 pub struct MenuPlugin;
@@ -26,13 +26,13 @@ impl Plugin for MenuPlugin {
     }
 }
 
-// this is a tag component, so that we know what is on the menu screen
+/// Tag Entities with this if they appear on any menu screen
 #[derive(Component)]
 struct OnMenuScreen;
-
+/// Tag Entities with this if they are visible on [MenuState::MainMenu]
 #[derive(Component)]
 struct OnMainMenuScreen;
-
+/// Tag Entities with this if they are visible on [MenuState::Settings]
 #[derive(Component)]
 struct OnSettingsMenuScreen;
 
@@ -55,18 +55,15 @@ enum MenuButtonAction {
 }
 
 // set some color constants -- eventually this can maybe be configurable?
-// this doestnt work and idk why yet
-// const BUTTON_DEFAULT_COLOR: Color = Color::srgb_u8(49, 104, 65);
-// const BUTTON_HOVER_COLOR: Color = Color::srgb_u8(49, 104, 93);
-// const BUTTON_PRESSED_COLOR: Color = Color::srgb_u8(49, 104, 120);
-
-const BUTTON_DEFAULT_COLOR: Color = Color::srgb(0.15, 0.15, 0.15);
-const BUTTON_HOVER_COLOR: Color = Color::srgb(0.30, 0.30, 0.30);
-const BUTTON_PRESSED_COLOR: Color = Color::srgb(0.45, 0.45, 0.45);
+static BUTTON_DEFAULT_COLOR: LazyLock<Color> = LazyLock::new(|| Color::srgb_u8(49, 104, 65));
+static BUTTON_HOVER_COLOR: LazyLock<Color> = LazyLock::new(|| Color::srgb_u8(56, 104, 76));
+static BUTTON_PRESSED_COLOR: LazyLock<Color> = LazyLock::new(|| Color::srgb_u8(59, 104, 93));
 
 const TEXT_COLOR: Color = Color::srgb(0.9, 0.9, 0.9);
 
-
+/// On [Interaction] with any [Button], update the colour of it.
+/// It has different colours to distinguish between no interaction,
+/// hover, and pressed. Uses pre-defined constant colours.
 fn button_color_sys(
     mut interaction_query: Query<
         (
@@ -79,13 +76,13 @@ fn button_color_sys(
     for (interaction, mut color) in &mut interaction_query {
         match *interaction {
             Interaction::Pressed => {
-                *color = BUTTON_PRESSED_COLOR.into();
+                *color = (*BUTTON_PRESSED_COLOR).into();
             }
             Interaction::Hovered => {
-                *color = BUTTON_HOVER_COLOR.into();
+                *color = (*BUTTON_HOVER_COLOR).into();
             }
             Interaction::None => {
-                *color = BUTTON_DEFAULT_COLOR.into();
+                *color = (*BUTTON_DEFAULT_COLOR).into();
             }
         }
     }
@@ -93,9 +90,10 @@ fn button_color_sys(
 
 fn menu_setup_sys(mut menu_state: ResMut<NextState<MenuState>>) {
     menu_state.set(MenuState::MainMenu);
-    info!("in theory the MenuState should now be MainMenu")
+    info!("menu state: main menu")
 }
 
+/// Constructs the main menu, spawning in the necessary Entities
 fn main_menu_setup_sys(
     mut cmd: Commands,
     asset_server: Res<AssetServer>,
@@ -147,7 +145,7 @@ fn main_menu_setup_sys(
         parent.spawn((
             Button,
             button_node.clone(),
-            BackgroundColor(BUTTON_DEFAULT_COLOR),
+            BackgroundColor(*BUTTON_DEFAULT_COLOR),
             MenuButtonAction::NewGame
         ))
         .with_children( |parent| {
@@ -165,7 +163,7 @@ fn main_menu_setup_sys(
         parent.spawn((
             Button,
             button_node.clone(),
-            BackgroundColor(BUTTON_DEFAULT_COLOR),
+            BackgroundColor(*BUTTON_DEFAULT_COLOR),
             MenuButtonAction::Settings
         ))
         .with_children( |parent| {
@@ -183,7 +181,7 @@ fn main_menu_setup_sys(
         parent.spawn((
             Button,
             button_node.clone(),
-            BackgroundColor(BUTTON_DEFAULT_COLOR),
+            BackgroundColor(*BUTTON_DEFAULT_COLOR),
             MenuButtonAction::Quit
         ))
         .with_children( |parent| {
@@ -200,6 +198,9 @@ fn main_menu_setup_sys(
     });
 }
 
+/// Defines the actions that should occur on [Button] presses
+/// Allows quit, settings, back to main menu, and resume options
+/// Add this system to allow menu button actions to occur
 fn menu_button_action_sys(
     mut app_exit_events: EventWriter<AppExit>,
     mut game_state: ResMut<NextState<GameState>>,
@@ -233,6 +234,7 @@ fn menu_button_action_sys(
     }
 }
 
+/// Constructs the settings menu, spawns in necessary entities
 fn settings_menu_setup_sys(
     mut cmd: Commands,
     asset_server: Res<AssetServer>,
@@ -284,7 +286,7 @@ fn settings_menu_setup_sys(
         parent.spawn((
             Button,
             button_node.clone(),
-            BackgroundColor(BUTTON_DEFAULT_COLOR),
+            BackgroundColor(*BUTTON_DEFAULT_COLOR),
             MenuButtonAction::BackToMainMenu
         ))
         .with_children( |parent| {

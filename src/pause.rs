@@ -1,5 +1,5 @@
 use bevy::{prelude::*};
-use std::{path::PathBuf};
+use std::{path::PathBuf, sync::LazyLock};
 use super::{despawn_screen, pause_menu_listener_sys, GameState};
 
 pub struct PausePlugin;
@@ -27,25 +27,19 @@ impl Plugin for PausePlugin {
 }
 
 // set some color constants -- eventually this can maybe be configurable?
-// this doestnt work and idk why yet
-// const BUTTON_DEFAULT_COLOR: Color = Color::srgb_u8(49, 104, 65);
-// const BUTTON_HOVER_COLOR: Color = Color::srgb_u8(49, 104, 93);
-// const BUTTON_PRESSED_COLOR: Color = Color::srgb_u8(49, 104, 120);
-
-const BUTTON_DEFAULT_COLOR: Color = Color::srgb(0.15, 0.15, 0.15);
-const BUTTON_HOVER_COLOR: Color = Color::srgb(0.30, 0.30, 0.30);
-const BUTTON_PRESSED_COLOR: Color = Color::srgb(0.45, 0.45, 0.45);
+static BUTTON_DEFAULT_COLOR: LazyLock<Color> = LazyLock::new(|| Color::srgb_u8(49, 104, 65));
+static BUTTON_HOVER_COLOR: LazyLock<Color> = LazyLock::new(|| Color::srgb_u8(56, 104, 76));
+static BUTTON_PRESSED_COLOR: LazyLock<Color> = LazyLock::new(|| Color::srgb_u8(49, 104, 93));
 
 const TEXT_COLOR: Color = Color::srgb(0.9, 0.9, 0.9);
 
-// tag components so that we know what stuff is displayed in various menu states
-// this one is for ALL MENU
+/// Tag Entities with this if they appear on any menu screen
 #[derive(Component)]
 struct OnMenuScreen;
-// this is specifically the pause menu
+/// Tag Entities with this if they occur on [PauseMenuState::PauseMenu]
 #[derive(Component)]
 struct OnPauseMenuScreen;
-// this is for the settings submenu
+/// Tag Entities with this if they occur on [PauseMenuState::Settings]
 #[derive(Component)]
 struct OnSettingsMenuScreen;
 
@@ -66,6 +60,9 @@ enum MenuButtonAction {
     Quit
 }
 
+/// On [Interaction] with any [Button], update the colour of it.
+/// It has different colours to distinguish between no interaction,
+/// hover, and pressed. Uses pre-defined constant colours.
 fn button_color_sys(
     mut interaction_query: Query<
         (
@@ -78,18 +75,21 @@ fn button_color_sys(
     for (interaction, mut color) in &mut interaction_query {
         match *interaction {
             Interaction::Pressed => {
-                *color = BUTTON_PRESSED_COLOR.into();
+                *color = (*BUTTON_PRESSED_COLOR).into();
             }
             Interaction::Hovered => {
-                *color = BUTTON_HOVER_COLOR.into();
+                *color = (*BUTTON_HOVER_COLOR).into();
             }
             Interaction::None => {
-                *color = BUTTON_DEFAULT_COLOR.into();
+                *color = (*BUTTON_DEFAULT_COLOR).into();
             }
         }
     }
 }
 
+/// Listens for the escape key to be pressed, and if so,
+/// changes the [GameState] and [PauseMenuState] accordingly
+/// to exit the pause menu
 fn unpause_listener_sys(
     keys: Res<ButtonInput<KeyCode>>,
     mut game_state: ResMut<NextState<GameState>>,
@@ -106,6 +106,7 @@ fn pause_setup_sys(mut pause_state: ResMut<NextState<PauseMenuState>>) {
     pause_state.set(PauseMenuState::PauseMenu);
 }
 
+/// Constructs the pause menu, spawning in buttons and info text
 fn pause_menu_setup_sys(
     mut cmd: Commands,
     asset_server: Res<AssetServer>,
@@ -157,7 +158,7 @@ fn pause_menu_setup_sys(
         parent.spawn((
             Button,
             button_node.clone(),
-            BackgroundColor(BUTTON_DEFAULT_COLOR),
+            BackgroundColor(*BUTTON_DEFAULT_COLOR),
             MenuButtonAction::Settings
         ))
         .with_children( |parent| {
@@ -175,7 +176,7 @@ fn pause_menu_setup_sys(
         parent.spawn((
             Button,
             button_node.clone(),
-            BackgroundColor(BUTTON_DEFAULT_COLOR),
+            BackgroundColor(*BUTTON_DEFAULT_COLOR),
             MenuButtonAction::Resume
         ))
         .with_children( |parent| {
@@ -193,7 +194,7 @@ fn pause_menu_setup_sys(
         parent.spawn((
             Button,
             button_node.clone(),
-            BackgroundColor(BUTTON_DEFAULT_COLOR),
+            BackgroundColor(*BUTTON_DEFAULT_COLOR),
             MenuButtonAction::Quit
         ))
         .with_children( |parent| {
@@ -210,6 +211,7 @@ fn pause_menu_setup_sys(
     });
 }
 
+/// Constructs the settings sub-menu, spawning in buttons and info text
 fn settings_menu_setup_sys(
     mut cmd: Commands,
     asset_server: Res<AssetServer>,
@@ -261,7 +263,7 @@ fn settings_menu_setup_sys(
         parent.spawn((
             Button,
             button_node.clone(),
-            BackgroundColor(BUTTON_DEFAULT_COLOR),
+            BackgroundColor(*BUTTON_DEFAULT_COLOR),
             MenuButtonAction::BackToPauseMenu
         ))
         .with_children( |parent| {
@@ -277,6 +279,7 @@ fn settings_menu_setup_sys(
         });
     });
 }
+
 
 fn menu_button_action_sys(
     mut app_exit_events: EventWriter<AppExit>,
