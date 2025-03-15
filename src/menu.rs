@@ -224,7 +224,7 @@ fn menu_button_action_sys(
                     info!("menu state: main menu")
                 }
                 MenuButtonAction::NewGame => {
-                    game_state.set(GameState::Loading);
+                    game_state.set(GameState::Game);
                     menu_state.set(MenuState::Disabled);
                     info!("menu state: disabled and game state: game!")
                 }

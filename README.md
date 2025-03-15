@@ -11,7 +11,7 @@ Linux requires Bevy's [Linux dependencies](https://github.com/bevyengine/bevy/bl
 Levels should be placed within `assets/levels`.
 
 To load a specific level use the `--level` argument to provide the desired asset path.
-To skip normal startup and start the level immediately, use `--initial-state loading`. For example:
+To skip normal startup and start the level immediately, use `--initial-state game`. For example:
 ```sh
-$ cargo run -- --level levels/test.ron --initial-state loading
+$ cargo run -- --level levels/test.ron --initial-state game
 ```
