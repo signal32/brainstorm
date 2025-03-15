@@ -24,9 +24,7 @@ pub(super) fn bird_spawn_sys(
     mut cmd: Commands,
 ) {
     let mut rng = rand::rng();
-
     let level_asset = level_assets.get(&level.level_handle).unwrap();
-    let birds:  Vec<&str> = level_asset.birds.iter().map(|b| b.asset.as_str()).collect();
 
     for (entity, spawner, spawner_tf) in spawners.iter() {
         let time_now = time.elapsed_secs();
@@ -39,8 +37,19 @@ pub(super) fn bird_spawn_sys(
         if cooldown_expired && do_we_bird_yet {
             last_entity_spawn_time.insert(entity, time_now);
 
+            // Choose a bird from the level at random based based on its `spawn_probability`
+            let mut total_probability= 0.;
+            let mut cumulative_probability = vec![];
+            for bird in level_asset.birds.iter() {
+                total_probability += bird.spawn_probability;
+                cumulative_probability.push(total_probability);
+            }
+            let random_p = rng.random_range(0. .. total_probability);
+            let random_index = cumulative_probability.iter().position(|p| &random_p <= p).unwrap_or(0);
+            let random_bird = &level_asset.birds[random_index];
+
             cmd.spawn((
-                BirdAssetHandle(asset_server.load(birds[rng.random_range(0..birds.len())])),
+                BirdAssetHandle(asset_server.load(random_bird.asset.as_str())),
                 spawner_tf.clone()
             ));
         }

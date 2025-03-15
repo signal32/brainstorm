@@ -49,7 +49,7 @@ pub struct LevelAsset {
 #[derive(Debug, Deserialize)]
 pub struct LevelBird {
     pub asset: String,
-    // pub spawn_probability: f32
+    pub spawn_probability: f32
 }
 
 /// Wait for current level asset to load then setup game and transition to [GameState::Game] when ready.

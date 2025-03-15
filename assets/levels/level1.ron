@@ -4,15 +4,15 @@ LevelAsset (
     birds: [
         LevelBird (
             asset: "birds/bluebird.ron",
+            spawn_probability: 10.0
         ),
         LevelBird (
             asset: "birds/swallow.ron",
+            spawn_probability: 4.0
         ),
         LevelBird (
             asset: "birds/swallow_long.ron",
-        ),
-        LevelBird (
-            asset: "birds/swallow_long.ron",
+            spawn_probability: 0.5
         ),
     ],
 )
