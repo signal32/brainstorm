@@ -60,13 +60,12 @@ pub(super) fn bird_spawn_sys(
 /// Spawns bird spawners.
 pub(super) fn setup_spawner_sys(
     mut cmd: Commands,
-    windows: Query<&Window>,
     mut asset_ev: EventReader<AssetEvent<LevelAsset>>,
     level_assets: Res<Assets<LevelAsset>>,
+    windows: Query<&Window>,
 ) {
     let window_height = windows.single().height();
     let window_width = windows.single().width();
-    let bird_count = 10;
     let bird_padding = 200.;
 
     for ev in asset_ev.read() {
@@ -74,8 +73,8 @@ pub(super) fn setup_spawner_sys(
             AssetEvent::LoadedWithDependencies { id } => {
                 let level = level_assets.get(*id).expect("No level");
 
-                for i in 0..bird_count {
-                    let x = ((window_width - bird_padding) / (bird_count - 1) as f32) * i as f32;
+                for i in 0..level.spawner_qty {
+                    let x = ((window_width - bird_padding) / (level.spawner_qty - 1) as f32) * i as f32;
 
                     let mut transform = Transform::from_xyz(
                         x - (window_width - bird_padding) * 0.5 ,

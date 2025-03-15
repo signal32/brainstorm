@@ -1,6 +1,7 @@
 LevelAsset (
     spawn_probability: 0.005,
     spawn_cooldown: 2.0,
+    spawner_qty: 10,
     birds: [
         LevelBird (
             asset: "birds/bluebird.ron",

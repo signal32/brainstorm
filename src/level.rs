@@ -42,6 +42,7 @@ pub struct Level {
 pub struct LevelAsset {
     pub spawn_probability: f32,
     pub spawn_cooldown: f32,
+    pub spawner_qty: i32,
     pub birds: Vec<LevelBird>
 }
 
