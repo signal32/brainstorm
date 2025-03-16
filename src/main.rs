@@ -16,7 +16,10 @@ use projectile::{ProjectileLauncher, ProjectilePlugin};
 use menu::MenuPlugin; // TODO: remove these once its all handled in UIPlugin
 use pause::PausePlugin;
 use splash::SplashPlugin;
-use ui::UIPlugin;
+use ui::{
+    UIPlugin,
+    pause_menu_listener_sys
+};
 
 fn main() {
     App::new()
@@ -24,16 +27,16 @@ fn main() {
             DefaultPlugins.set(ImagePlugin::default_nearest()),
             PhysicsPlugin,
             ProjectilePlugin,
-            MenuPlugin, // TODO: remove these once its all handled in UIPlugin
-            PausePlugin,
-            SplashPlugin,
+            // MenuPlugin, // TODO: remove these once its all handled in UIPlugin
+            // PausePlugin,
+            // SplashPlugin,
             BirdPlugin,
             UIPlugin,
             LevelPlugin::default(),
         ))
         .init_state::<GameState>()
-        .add_systems(Startup, setup_sys)
-        .add_systems(OnExit(GameState::Splash), player_spawn_sys)// this is not a good fix for this,,, a bit janky,, it needs moving into its own PlayerPlugin tbh
+        .add_systems(Startup, (setup_sys, player_spawn_sys))
+        //.add_systems(OnExit(GameState::Splash), player_spawn_sys)// this is not a good fix for this,,, a bit janky,, it needs moving into its own PlayerPlugin tbh
         .add_systems(Update, ((
             player_move_sys,
             pause_menu_listener_sys
@@ -46,8 +49,8 @@ fn main() {
 pub(crate) enum GameState {
     Game,
     Pause,
-    Menu,
     #[default]
+    Menu,
     Splash,
     Loading,
 }
@@ -104,54 +107,6 @@ fn player_move_sys(
         }
     }
 }
-
-fn pause_menu_listener_sys(
-    keys: Res<ButtonInput<KeyCode>>,
-    mut game_state: ResMut<NextState<GameState>>
-) {
-    if keys.just_pressed(KeyCode::Escape) {
-        game_state.set(GameState::Pause);
-        info!("game paused");
-    }
-}
-
-// fn pause_menu_listener_sys(
-//     keys: Res<ButtonInput<KeyCode>>,
-//     mut game_state: ResMut<NextState<GameState>>,
-//     mut menu_state: ResMut<NextState<MenuState>>
-// ) {
-//     if keys.just_pressed(KeyCode::Escape) {
-//         match game_state {
-//             GameState::Game => {
-//                 game_state.set(GameState::Pause);
-//                 info!("game state changed to paused!");
-//             }
-//             GameState::Menu => {
-//                 match menu_state {
-//                     MenuState::MainMenu => {
-//                         menu_state.set(MenuState::Disabled);
-//                         game_state.set(GameState::Game);
-//                         info!("menu state is now diabled, and game state is game");
-//                     }
-//                     MenuState::Settings => {
-//                         menu_state.set(MenuState::MainMenu);
-//                         info!("menu state is now main menu");
-//                     }
-//                     _ => {
-//                         panic!("HOW DID WE GET HERE???");
-//                     }
-//                 }
-//             }
-//             GameState::Pause => {
-//                 info!("THIS NEEDS DOING YAS COME ON");
-//             }
-//             GameState::Splash => {
-//                 // do nothing lol
-//                 info!("HAH silly, u can't exit the splash screen, just wait.");
-//             }
-//         }
-//     }
-// }
 
 // stole this directly from an example but it seems a sensible way of removing
 // unneeded Entities with a given Component indiscriminantly

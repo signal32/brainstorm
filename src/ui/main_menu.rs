@@ -13,6 +13,8 @@ use super::{
     MENU_TEXT_COLOR
 };
 
+use super::pause::PauseMenuState;
+
 pub struct MenuPlugin;
 
 impl Plugin for MenuPlugin {
@@ -49,7 +51,7 @@ struct OnMenuScreen;
 struct OnMainMenuScreen;
 /// Tag Entities with this if they are visible on [MenuState::Settings]
 #[derive(Component)]
-struct OnSettingsMenuScreen;
+pub(crate) struct OnSettingsMenuScreen;
 
 // / Defines the MenuStates for the Main Menu screen
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
@@ -81,10 +83,12 @@ fn main_menu_setup_sys(
     );
     cmd.entity(container).
     insert((
-        title_text,
         OnMenuScreen,
         OnMainMenuScreen
     ))
+    .with_children(|parent| {
+        parent.spawn(title_text);
+    })
     .with_children( |mut parent| {
         ButtonNode::spawn(&mut parent, &asset_server, ButtonAction::Menu(MenuButtonAction::NewGame), "New Game".to_string());
     })
@@ -96,7 +100,7 @@ fn main_menu_setup_sys(
     });
 }
 
-fn settings_menu_setup_sys(
+pub(crate) fn settings_menu_setup_sys(
     mut cmd: Commands,
     asset_server: Res<AssetServer>,
 ) {
@@ -112,12 +116,14 @@ fn settings_menu_setup_sys(
     let container = MenuContainerNode::spawn(&mut cmd);
     cmd.entity(container).
     insert((
-        sub_title_text,
         OnMenuScreen,
         OnSettingsMenuScreen
     ))
+    .with_children( |parent| {
+        parent.spawn(sub_title_text);
+    })
     .with_children( |mut parent| {
-        ButtonNode::spawn(&mut parent, &asset_server, ButtonAction::Menu(MenuButtonAction::BackToMainMenu), "Main Menu".to_string());
+        ButtonNode::spawn(&mut parent, &asset_server, ButtonAction::Menu(MenuButtonAction::BackToMenu), "Back to Menu".to_string());
     });
 }
 
@@ -125,17 +131,19 @@ fn settings_menu_setup_sys(
 /// Allows quit, settings, back to main menu, and resume options
 /// Add this system to allow menu button actions to occur
 fn menu_button_action_sys(
+    current_game_state: Res<State<GameState>>,
     mut app_exit_events: EventWriter<AppExit>,
     mut game_state: ResMut<NextState<GameState>>,
     mut menu_state: ResMut<NextState<MenuState>>,
+    mut pause_state: ResMut<NextState<PauseMenuState>>,
     interactions: Query<
         (&Interaction, &ButtonAction),
         (Changed<Interaction>, With<Button>)
     >,
 ) {
-    for (interaction, menu_button_action) in &interactions {
+    for (interaction, button_action) in &interactions {
         if *interaction == Interaction::Pressed {
-            match menu_button_action {
+            match button_action {
                 ButtonAction::Quit => {
                     app_exit_events.send(AppExit::Success);
                 }
@@ -143,11 +151,24 @@ fn menu_button_action_sys(
                     menu_state.set(MenuState::Settings);
                     info!("menu state: settings")
                 }
-                ButtonAction::Menu(BackToMainMenu) => {
-                    menu_state.set(MenuState::MainMenu);
-                    info!("menu state: main menu")
+                ButtonAction::Menu(MenuButtonAction::BackToMenu) => {
+                    match **current_game_state {
+                        GameState::Pause => {
+                            // return to pause menu
+                            pause_state.set(PauseMenuState::PauseMenu);
+                            info!("pause state: pause menu");
+                        }
+                        GameState::Menu => {
+                            // return to main menu
+                            menu_state.set(MenuState::MainMenu);
+                            info!("menu state: main menu");
+                        }
+                        _ => {
+                            panic!("you have reached something unreachable, trying to go BackToMenu in a GameState that is not Menu or Pause");
+                        }
+                    }
                 }
-                ButtonAction::Menu(NewGame) => {
+                ButtonAction::Menu(MenuButtonAction::NewGame) => {
                     game_state.set(GameState::Loading);
                     menu_state.set(MenuState::Disabled);
                     info!("menu state: disabled and game state: game!")

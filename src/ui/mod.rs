@@ -8,8 +8,14 @@ use super::{
     GameState,
     despawn_entities
 };
-use main_menu::MenuState;
-use pause::PauseMenuState;
+use main_menu::{
+    MenuState,
+    MenuPlugin
+};
+use pause::{
+    PauseMenuState,
+    PausePlugin
+};
 
 // set some color constants -- eventually this can maybe be configurable?
 static BUTTON_DEFAULT_COLOR: LazyLock<Color> = LazyLock::new(|| Color::srgb_u8(49, 104, 65));
@@ -25,6 +31,13 @@ pub struct UIPlugin;
 impl Plugin for UIPlugin {
     fn build(&self, app: &mut App) {
         // TODO: do app.things here
+        // add MenuPlugin here
+        // add PausePlugin
+        // add SplashPlugin
+        app.add_plugins((
+            MenuPlugin,
+            PausePlugin
+        ));
     }
 }
 
@@ -43,15 +56,14 @@ pub enum ButtonAction {
 /// Enum of all actions a menu [Button] should be able to perform
 #[derive(Debug)]
 pub enum MenuButtonAction {
-    BackToMainMenu,
+    BackToMenu,
     NewGame
 }
 
 /// Enum of all actions a [Button] on the pause menu should be able to perform
 #[derive(Debug)]
 pub enum PauseButtonAction {
-    BackToPauseMenu,
-    RestartGame,
+    QuitToTitle,
     Resume
 }
 
@@ -185,7 +197,7 @@ fn button_color_sys(
     }
 }
 
-fn pause_menu_listener_sys(
+pub fn pause_menu_listener_sys(
     keys: Res<ButtonInput<KeyCode>>,
     game_state: Res<State<GameState>>,
     menu_state: Res<State<MenuState>>,
@@ -217,7 +229,7 @@ fn pause_menu_listener_sys(
                 }
             }
             GameState::Pause => {
-                info!("THIS NEEDS DOING YAS COME ON");
+                info!("THIS NEEDS DOING YAS COME ON"); // TODO: add pause listener stuff
             }
             GameState::Splash => {
                 // do nothing lol
