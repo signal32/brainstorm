@@ -20,8 +20,8 @@ use splash::SplashPlugin;
 
 // set some color constants -- eventually this can maybe be configurable?
 static BUTTON_DEFAULT_COLOR: LazyLock<Color> = LazyLock::new(|| Color::srgb_u8(49, 104, 65));
-static BUTTON_HOVER_COLOR: LazyLock<Color> = LazyLock::new(|| Color::srgb_u8(56, 104, 76));
-static BUTTON_PRESSED_COLOR: LazyLock<Color> = LazyLock::new(|| Color::srgb_u8(59, 104, 93));
+static BUTTON_HOVER_COLOR: LazyLock<Color> = LazyLock::new(|| Color::srgb_u8(77, 130, 92));
+static BUTTON_PRESSED_COLOR: LazyLock<Color> = LazyLock::new(|| Color::srgb_u8(101, 153, 116));
 static MENU_BACKGROUND_COLOR: LazyLock<Color> = LazyLock::new(|| Color::srgba_u8(64, 64, 64, 196));
 
 const MENU_TEXT_COLOR: Color = Color::srgb(0.9, 0.9, 0.9);
