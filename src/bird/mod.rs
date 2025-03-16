@@ -61,7 +61,7 @@ fn bird_hit_sys(
         else { None };
 
         if let Some((mut velocity, mut tf, mut bird)) = bird {
-            bird.hunger -= 1;
+            bird.hunger = bird.hunger.saturating_sub(1);
             level.score += bird.on_feed_points;
 
             // fly away once no longer hungry
