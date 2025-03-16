@@ -57,7 +57,7 @@ pub(super) fn load_bird_assets_sys(
                 ))
                 .with_child((
                     BirdHungerBar,
-                    Transform::from_xyz(asset.size.x * 0.5, 0., 200.),
+                    Transform::from_xyz(asset.size.x * 0.6, 0., 200.),
                     Mesh2d(meshes.add(Rectangle::new(20., 10.))),
                     MeshMaterial2d(materials.add(Color::WHITE)),
                 ));
