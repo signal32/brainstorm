@@ -6,15 +6,17 @@ mod splash;
 mod bird;
 mod util;
 mod level;
+mod ui;
 
 use bevy::prelude::*;
 use bird::BirdPlugin;
 use level::LevelPlugin;
 use physics::PhysicsPlugin;
 use projectile::{ProjectileLauncher, ProjectilePlugin};
-use menu::MenuPlugin;
+use menu::MenuPlugin; // TODO: remove these once its all handled in UIPlugin
 use pause::PausePlugin;
 use splash::SplashPlugin;
+use ui::UIPlugin;
 
 fn main() {
     App::new()
@@ -22,10 +24,11 @@ fn main() {
             DefaultPlugins.set(ImagePlugin::default_nearest()),
             PhysicsPlugin,
             ProjectilePlugin,
-            MenuPlugin,
+            MenuPlugin, // TODO: remove these once its all handled in UIPlugin
             PausePlugin,
             SplashPlugin,
             BirdPlugin,
+            UIPlugin,
             LevelPlugin::default(),
         ))
         .init_state::<GameState>()
