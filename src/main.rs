@@ -1,7 +1,5 @@
 mod projectile;
 mod physics;
-mod menu;
-mod pause;
 mod splash;
 mod bird;
 mod util;
@@ -13,9 +11,6 @@ use bird::BirdPlugin;
 use level::LevelPlugin;
 use physics::PhysicsPlugin;
 use projectile::{ProjectileLauncher, ProjectilePlugin};
-use menu::MenuPlugin; // TODO: remove these once its all handled in UIPlugin
-use pause::PausePlugin;
-use splash::SplashPlugin;
 use ui::{
     UIPlugin,
     pause_menu_listener_sys
@@ -27,16 +22,12 @@ fn main() {
             DefaultPlugins.set(ImagePlugin::default_nearest()),
             PhysicsPlugin,
             ProjectilePlugin,
-            // MenuPlugin, // TODO: remove these once its all handled in UIPlugin
-            // PausePlugin,
-            // SplashPlugin,
             BirdPlugin,
             UIPlugin,
             LevelPlugin::default(),
         ))
         .init_state::<GameState>()
         .add_systems(Startup, (setup_sys, player_spawn_sys))
-        //.add_systems(OnExit(GameState::Splash), player_spawn_sys)// this is not a good fix for this,,, a bit janky,, it needs moving into its own PlayerPlugin tbh
         .add_systems(Update, ((
             player_move_sys,
             pause_menu_listener_sys
