@@ -13,15 +13,14 @@ use super::{
     MENU_TEXT_COLOR
 };
 use super::main_menu::{
-    settings_menu_setup_sys, // FIXME: the settings menu will always lead you back to the main menu instead of the menu you came from... hmmm
-    OnSettingsMenuScreen, // fix by adding a check whether GameState is in Pause or Menu before deciding which menu to return to
+    settings_menu_setup_sys,
+    OnSettingsMenuScreen,
 };
 
 pub struct PausePlugin;
 
 impl Plugin for PausePlugin {
     fn build(&self, app: &mut App) {
-        // TODO: do app.things here
         app
         .init_state::<PauseMenuState>()
         .add_systems(OnEnter(GameState::Pause), pause_setup_sys)
