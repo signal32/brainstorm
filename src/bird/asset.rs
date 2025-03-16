@@ -6,7 +6,7 @@ use bevy::{
 use serde::Deserialize;
 use crate::{physics::{Collider, Velocity}, util::ron_asset_loader::RonAssetLoader};
 
-use super::Bird;
+use super::{Bird, BirdHungerBar};
 
 pub struct BirdPlugin;
 
@@ -32,25 +32,35 @@ pub(super) fn load_bird_assets_sys(
     bird_assets: Query<(Entity, &BirdAssetHandle), Without<Bird>>,
     asset_server: Res<AssetServer>,
     assets: Res<Assets<BirdAsset>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     for (entity, bird_asset_path) in bird_assets.iter() {
         if let Some(asset) = assets.get(&bird_asset_path.0) {
-            cmd.entity(entity).insert_if_new((
-                Bird {
-                    name: asset.name.clone(),
-                    hunger: asset.hunger,
-                    on_feed_points: asset.on_feed_points,
-                },
-                Velocity(asset.velocity),
-                Collider::Rectangle(Rectangle::from_size(asset.size)),
-                Sprite {
-                    image: asset_server.load(asset.sprite.clone()),
-                    custom_size: Some(asset.size),
-                    image_mode: SpriteImageMode::Auto,
-                    flip_y: true,
-                    ..default()
-                },
-            ));
+            cmd.entity(entity)
+                .insert_if_new((
+                    Bird {
+                        name: asset.name.clone(),
+                        hunger: asset.hunger,
+                        initial_hunger: asset.hunger,
+                        on_feed_points: asset.on_feed_points,
+                    },
+                    Velocity(asset.velocity),
+                    Collider::Rectangle(Rectangle::from_size(asset.size)),
+                    Sprite {
+                        image: asset_server.load(asset.sprite.clone()),
+                        custom_size: Some(asset.size),
+                        image_mode: SpriteImageMode::Auto,
+                        flip_y: true,
+                        ..default()
+                    },
+                ))
+                .with_child((
+                    BirdHungerBar,
+                    Transform::from_xyz(asset.size.x * 0.5, 0., 200.),
+                    Mesh2d(meshes.add(Rectangle::new(20., 10.))),
+                    MeshMaterial2d(materials.add(Color::WHITE)),
+                ));
         }
     }
 }

@@ -22,6 +22,7 @@ impl Plugin for BirdPlugin {
             bird_spawn_sys,
             bird_hit_sys,
             update_bird_tweet_sys,
+            update_bird_hunger_bar_sys,
         ).run_if(in_state(GameState::Game)));
         app.add_systems(FixedPostUpdate, load_bird_assets_sys);
     }
@@ -32,6 +33,7 @@ struct Bird {
     name: String,
     /// Units of food required to satisfy hunger
     hunger: i8,
+    initial_hunger: i8,
     /// Base points to grant player on being fed unit of food
     on_feed_points: u32,
 }
@@ -41,6 +43,9 @@ impl Bird {
         println!("tweet i am a {}", self.name)
     }
 }
+
+#[derive(Component)]
+struct BirdHungerBar;
 
 /// Makes birds fly away from non bird entities that collide with them.
 fn bird_hit_sys(
@@ -81,6 +86,36 @@ fn update_bird_tweet_sys(
 ) {
     for bird in birds.iter() {
         bird_text.0 = format!("Score {}\ntweet i am a {}", level.score, bird.name);
+    }
+}
+
+fn update_bird_hunger_bar_sys(
+    changed_birds: Query<(&Bird, &Children), Changed<Bird>>,
+    mut cmd: Commands,
+    mut bird_hunger_bars: Query<(Entity, &mut Mesh2d, &mut MeshMaterial2d<ColorMaterial>), With<BirdHungerBar>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+) {
+    for (bird, children) in changed_birds.iter() {
+        let percent_full = (bird.initial_hunger - bird.hunger) as f32 / (bird.initial_hunger as f32);
+
+        for &child in children.iter() {
+            if let Ok((entity, mut mesh, mut material)) = bird_hunger_bars.get_mut(child) {
+                if bird.hunger == 0 {
+                    cmd.entity(entity).despawn()
+                }
+
+                // fade colour bar between orange and green as bird gets fed
+                let orange = bevy::color::palettes::css::ORANGE;
+                let green = bevy::color::palettes::css::GREEN;
+                let colour = Srgba::from_vec3(orange.to_vec3().lerp(green.to_vec3(), percent_full));
+                material.0 = materials.add(Color::Srgba(colour));
+
+                // make colour bar bigger
+                // todo: scale from bottom rather than center
+                mesh.0 = meshes.add(Rectangle::new(10., 100. * percent_full));
+            }
+        }
     }
 }
 
