@@ -213,9 +213,7 @@ pub fn pause_menu_listener_sys(
             GameState::Menu => {
                 match **menu_state {
                     MenuState::MainMenu => {
-                        next_menu_state.set(MenuState::Disabled);
-                        next_game_state.set(GameState::Game);
-                        info!("menu state is now diabled, and game state is game");
+                        info!("Nothing should happen by pressing Esc here");
                     }
                     MenuState::Settings => {
                         next_menu_state.set(MenuState::MainMenu);
@@ -227,11 +225,24 @@ pub fn pause_menu_listener_sys(
                 }
             }
             GameState::Pause => {
-                info!("THIS NEEDS DOING YAS COME ON"); // TODO: add pause listener stuff
+                match **pause_state {
+                    PauseMenuState::PauseMenu => {
+                        next_pause_state.set(PauseMenuState::Disabled);
+                        next_game_state.set(GameState::Game);
+                        info!("pause menu: disabled, and game state: game");
+                    }
+                    PauseMenuState::Settings => {
+                        next_pause_state.set(PauseMenuState::PauseMenu);
+                        info!("pause state: pause menu");
+                    }
+                    _ => {
+                        panic!("HOW DID WE GET HERE???");
+                    }
+                }
             }
             GameState::Splash => {
                 // do nothing lol
-                info!("HAH silly, u can't exit the splash screen, just wait.");
+                info!("HAH silly, u can't Esc the splash screen, just wait.");
             }
             _ => {
                 panic!("bro how did you even get here");
