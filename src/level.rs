@@ -1,12 +1,12 @@
 use std::path::PathBuf;
 
-use bevy::{prelude::*, text::cosmic_text::Command, utils::HashMap};
+use bevy::prelude::*;
 use serde::Deserialize;
 
 use crate::{util::ron_asset_loader::RonAssetLoader, GameState};
 
 pub struct LevelPlugin {
-    default_level: PathBuf
+    pub default_level: PathBuf
 }
 
 impl Default for LevelPlugin {
@@ -24,14 +24,17 @@ impl Plugin for LevelPlugin {
                 default_level_path: self.default_level.clone(),
                 ..default()
             })
-            .add_systems(FixedUpdate, load_level_sys.run_if(in_state(GameState::Loading)));
+            .add_systems(OnEnter(GameState::Game), load_level_sys);
     }
 }
 
 /// State related to current level
 #[derive(Debug, Resource, Default)]
 pub struct Level {
-    /// Current level, will be loaded by [load_level_sys] when [GameState::Loading].
+    /// Current level, loading of which will be triggered by [load_level_sys]
+    /// when entering [GameState::Game].
+    ///
+    /// TODO: would make sense to differentiate current level from next level.
     pub level_handle: Handle<LevelAsset>,
     /// Fallback level if none is given.
     default_level_path: PathBuf,
@@ -56,18 +59,7 @@ pub struct LevelBird {
 /// Wait for current level asset to load then setup game and transition to [GameState::Game] when ready.
 fn load_level_sys(
     mut level: ResMut<Level>,
-    mut game_state: ResMut<NextState<GameState>>,
     asset_server: Res<AssetServer>,
-    level_assets: Res<Assets<LevelAsset>>,
 ) {
-    if asset_server.is_managed(level.level_handle.id()) {
-        if  let Some(level_asset) = level_assets.get(&level.level_handle) {
-            info!("Level loaded: ${:?}", level_asset);
-            game_state.set(GameState::Game);
-        }
-    }
-    else {
-        level.level_handle = asset_server.load(level.default_level_path.clone());
-    }
-
+    level.level_handle = asset_server.load(level.default_level_path.clone());
 }

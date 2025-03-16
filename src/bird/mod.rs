@@ -16,7 +16,7 @@ impl Plugin for BirdPlugin {
     fn build(&self, app: &mut App) {
         app.init_asset::<BirdAsset>();
         app.init_asset_loader::<RonAssetLoader<BirdAsset>>();
-        app.add_systems(OnEnter(GameState::Loading), setup_sys);
+        app.add_systems(OnEnter(GameState::Game), setup_sys);
         app.add_systems(FixedUpdate, setup_spawner_sys.run_if(in_state(GameState::Game)));
         app.add_systems(FixedUpdate, (
             bird_spawn_sys,
@@ -81,7 +81,9 @@ fn setup_sys(
     mut cmd: Commands,
     asset_server: Res<AssetServer>,
 ) {
-    cmd.spawn((
+    // This is a bit of a hack to make sure only 1 BirdTweetText ever exists.
+    // Otherwise another gets added each time we enter game state which causes a panic elsewhere.
+    once!(cmd.spawn((
         BirdTweetText,
         Text::new("howdy!".to_string()), // initial greeting before any birds show up
         TextFont {
@@ -96,5 +98,5 @@ fn setup_sys(
             right: Val::Px(5.),
             ..default()
         },
-    ));
+    )));
 }

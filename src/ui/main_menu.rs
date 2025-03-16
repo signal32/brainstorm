@@ -168,7 +168,7 @@ fn menu_button_action_sys(
                     }
                 }
                 ButtonAction::Menu(MenuButtonAction::NewGame) => {
-                    game_state.set(GameState::Loading);
+                    game_state.set(GameState::Game);
                     menu_state.set(MenuState::Disabled);
                     info!("menu state: disabled and game state: game!")
                 }

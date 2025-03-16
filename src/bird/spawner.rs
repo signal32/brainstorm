@@ -24,36 +24,36 @@ pub(super) fn bird_spawn_sys(
     mut cmd: Commands,
 ) {
     let mut rng = rand::rng();
-    let level_asset = level_assets.get(&level.level_handle).unwrap();
 
-    for (entity, spawner, spawner_tf) in spawners.iter() {
-        let time_now = time.elapsed_secs();
-        let last_spawn_time = last_entity_spawn_time
-            .entry(entity)
-            .or_insert(time.elapsed_secs());
-        let cooldown_expired = spawner.cooldown < time_now - *last_spawn_time;
-        let do_we_bird_yet = rng.random_bool(spawner.spawn_probability as f64);
+    if let Some(level_asset) = level_assets.get(&level.level_handle) {
+        for (entity, spawner, spawner_tf) in spawners.iter() {
+            let time_now = time.elapsed_secs();
+            let last_spawn_time = last_entity_spawn_time
+                .entry(entity)
+                .or_insert(time.elapsed_secs());
+            let cooldown_expired = spawner.cooldown < time_now - *last_spawn_time;
+            let do_we_bird_yet = rng.random_bool(spawner.spawn_probability as f64);
 
-        if cooldown_expired && do_we_bird_yet {
-            last_entity_spawn_time.insert(entity, time_now);
+            if cooldown_expired && do_we_bird_yet {
+                last_entity_spawn_time.insert(entity, time_now);
 
-            // Choose a bird from the level at random based based on its `spawn_probability`
-            let mut total_probability= 0.;
-            let mut cumulative_probability = vec![];
-            for bird in level_asset.birds.iter() {
-                total_probability += bird.spawn_probability;
-                cumulative_probability.push(total_probability);
+                // Choose a bird from the level at random based based on its `spawn_probability`
+                let mut total_probability= 0.;
+                let mut cumulative_probability = vec![];
+                for bird in level_asset.birds.iter() {
+                    total_probability += bird.spawn_probability;
+                    cumulative_probability.push(total_probability);
+                }
+                let random_p = rng.random_range(0. .. total_probability);
+                let random_index = cumulative_probability.iter().position(|p| &random_p <= p).unwrap_or(0);
+                let random_bird = &level_asset.birds[random_index];
+
+                cmd.spawn((
+                    BirdAssetHandle(asset_server.load(random_bird.asset.as_str())),
+                    spawner_tf.clone()
+                ));
             }
-            let random_p = rng.random_range(0. .. total_probability);
-            let random_index = cumulative_probability.iter().position(|p| &random_p <= p).unwrap_or(0);
-            let random_bird = &level_asset.birds[random_index];
-
-            cmd.spawn((
-                BirdAssetHandle(asset_server.load(random_bird.asset.as_str())),
-                spawner_tf.clone()
-            ));
         }
-
     }
 }
 

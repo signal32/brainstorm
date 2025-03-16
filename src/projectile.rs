@@ -29,6 +29,7 @@ fn launch_projectiles_sys(
     mut materials: ResMut<Assets<ColorMaterial>>,
     launchers: Query<(&ProjectileLauncher, &Transform)>,
     keys: Res<ButtonInput<KeyCode>>,
+    asset_server: Res<AssetServer>,
 ) {
     for (launcher, launcher_tf) in launchers.iter() {
         if keys.just_pressed(launcher.launch_key) {
@@ -37,8 +38,12 @@ fn launch_projectiles_sys(
                 Velocity(200.),
                 Collider::Rectangle(Rectangle::new(100., 10.)),
                 launcher_tf.clone(),
-                Mesh2d(meshes.add(Circle::new(10.))),
-                MeshMaterial2d(materials.add(Color::srgb_u8(127, 0, 100))),
+                Sprite {
+                    image: asset_server.load("sprites/seeds.png"),
+                    custom_size: Some(Vec2::splat(32.)),
+                    image_mode: SpriteImageMode::Auto,
+                    ..default()
+                }
             ));
         }
     }
