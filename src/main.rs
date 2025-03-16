@@ -26,7 +26,7 @@ fn main() {
             LevelPlugin::default(),
         ))
         .init_state::<GameState>()
-        .add_systems(Startup, (setup_sys, player_spawn_sys))
+        .add_systems(Startup, setup_sys)
         .add_systems(Update, ((
             player_move_sys,
             pause_menu_listener_sys
@@ -55,17 +55,13 @@ struct Player {
 }
 
 fn setup_sys(
-    mut cmd: Commands   
-) { 
-    cmd.spawn(Camera2d);
-}
-
-fn player_spawn_sys(
     mut cmd: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
-    windows: Query<&Window>
-) {
+    windows: Query<&Window>   
+) { 
+    cmd.spawn(Camera2d);
+
     let window_height = windows.single().height();
 
     cmd.spawn((
