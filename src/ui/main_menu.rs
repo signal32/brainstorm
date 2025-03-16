@@ -19,7 +19,6 @@ pub struct MenuPlugin;
 
 impl Plugin for MenuPlugin {
     fn build(&self, app: &mut App) {
-        // TODO: do app.things here
         app
         .init_state::<MenuState>()
         .add_systems(OnEnter(GameState::Menu), menu_setup_sys)

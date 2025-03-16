@@ -31,10 +31,6 @@ pub struct UIPlugin;
 
 impl Plugin for UIPlugin {
     fn build(&self, app: &mut App) {
-        // TODO: do app.things here
-        // add MenuPlugin here
-        // add PausePlugin
-        // add SplashPlugin
         app.add_plugins((
             MenuPlugin,
             PausePlugin,
@@ -48,7 +44,7 @@ impl Plugin for UIPlugin {
 /// To use the variants:
 /// [ButtonAction]::Menu([MenuButtonAction]::NewGame) for example
 #[derive(Component)]
-pub enum ButtonAction {
+pub(crate) enum ButtonAction {
     Menu(MenuButtonAction),
     Pause(PauseButtonAction),
     Quit,
@@ -57,14 +53,14 @@ pub enum ButtonAction {
 
 /// Enum of all actions a menu [Button] should be able to perform
 #[derive(Debug)]
-pub enum MenuButtonAction {
+pub(crate) enum MenuButtonAction {
     BackToMenu,
     NewGame
 }
 
 /// Enum of all actions a [Button] on the pause menu should be able to perform
 #[derive(Debug)]
-pub enum PauseButtonAction {
+pub(crate) enum PauseButtonAction {
     QuitToTitle,
     Resume
 }
@@ -73,7 +69,7 @@ pub enum PauseButtonAction {
 /// 
 /// # Usage
 /// ```
-/// let new_button = ButtonNode::spawn(parent, ButtonAction::Action);
+/// let new_button = ButtonNode::spawn(parent, asset_server, ButtonAction::Action, "Button Text");
 /// ```
 /// assuming parent is &mut [`ChildBuilder`], and has already been defined
 /// So [`ButtonNode`]s are always children of some other [`Entity`]
@@ -143,8 +139,8 @@ impl MenuContainerNode {
 /// # Usage:
 /// ```
 /// cmd.spawn((
-///     Text::from_section("Text here", MenuFont::button_font(asset_server)),
-///     TextColor(MENU_TEXT_COLOR)
+///     Text::new("Text here"),
+///     MenuFont::button_font(asset_server)
 /// ))
 /// ```
 pub struct MenuFont;
