@@ -16,6 +16,7 @@ use pause::{
     PauseMenuState,
     PausePlugin
 };
+use splash::SplashPlugin;
 
 // set some color constants -- eventually this can maybe be configurable?
 static BUTTON_DEFAULT_COLOR: LazyLock<Color> = LazyLock::new(|| Color::srgb_u8(49, 104, 65));
@@ -36,7 +37,8 @@ impl Plugin for UIPlugin {
         // add SplashPlugin
         app.add_plugins((
             MenuPlugin,
-            PausePlugin
+            PausePlugin,
+            SplashPlugin
         ));
     }
 }

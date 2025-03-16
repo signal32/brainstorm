@@ -1,6 +1,5 @@
 mod projectile;
 mod physics;
-mod splash;
 mod bird;
 mod util;
 mod level;
@@ -40,8 +39,8 @@ fn main() {
 pub(crate) enum GameState {
     Game,
     Pause,
-    #[default]
     Menu,
+    #[default]
     Splash,
     Loading,
 }
