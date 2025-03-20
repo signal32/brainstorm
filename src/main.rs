@@ -13,10 +13,7 @@ use clap::{Parser, ValueEnum};
 use level::LevelPlugin;
 use physics::PhysicsPlugin;
 use projectile::{ProjectileLauncher, ProjectilePlugin};
-use ui::{
-    UIPlugin,
-    pause_menu_listener_sys
-};
+use ui::UiPlugin;
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -61,18 +58,17 @@ fn main() {
             PhysicsPlugin,
             ProjectilePlugin,
             BirdPlugin,
-            UIPlugin,
+            UiPlugin,
             match args.level {
                 Some(level) => LevelPlugin { default_level: PathBuf::from(level) },
                 None => LevelPlugin::default()
             }
     ));
     app.add_systems(Startup, setup_sys);
-    app.add_systems(Update, ((
-        player_move_sys,
-        pause_menu_listener_sys
-    ).run_if(in_state(GameState::Game)),
-));
+    app.add_systems(Update,
+        (player_move_sys)
+        .run_if(in_state(GameState::Game)),
+    );
 
     app.init_state::<GameState>();
     if let Some(state) = args.initial_state {

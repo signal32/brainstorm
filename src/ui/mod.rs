@@ -27,15 +27,19 @@ static MENU_BACKGROUND_COLOR: LazyLock<Color> = LazyLock::new(|| Color::srgba_u8
 const MENU_TEXT_COLOR: Color = Color::srgb(0.9, 0.9, 0.9);
 const DEFAULT_TEXT_COLOR: Color = Color::srgb(0.9, 0.9, 0.9);
 
-pub struct UIPlugin;
+pub struct UiPlugin;
 
-impl Plugin for UIPlugin {
+impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
             MenuPlugin,
             PausePlugin,
             SplashPlugin
         ));
+        app.add_systems(Update, 
+            (pause_menu_listener_sys)
+            .run_if(in_state(GameState::Game))
+        );
     }
 }
 

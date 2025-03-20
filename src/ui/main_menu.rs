@@ -19,28 +19,30 @@ pub struct MenuPlugin;
 
 impl Plugin for MenuPlugin {
     fn build(&self, app: &mut App) {
-        app
-        .init_state::<MenuState>()
-        .add_systems(OnEnter(GameState::Menu), menu_setup_sys)
-        .add_systems(OnExit(GameState::Menu), despawn_entities::<OnMenuScreen>)
-        .add_systems(OnEnter(MenuState::MainMenu), main_menu_setup_sys)
-        .add_systems(OnExit(MenuState::MainMenu), despawn_entities::<OnMainMenuScreen>)
-        .add_systems(OnEnter(MenuState::Settings), settings_menu_setup_sys)
-        .add_systems(OnExit(MenuState::Settings), despawn_entities::<OnSettingsMenuScreen>)
-        .add_systems(Update, (
-                button_color_sys,
-                menu_button_action_sys,
-                pause_menu_listener_sys
-            ).run_if(in_state(GameState::Menu))
-        );
+        app.init_state::<MenuState>()
+            .add_systems(OnEnter(GameState::Menu), menu_setup_sys)
+            .add_systems(OnExit(GameState::Menu), despawn_entities::<OnMenuScreen>)
+            .add_systems(OnEnter(MenuState::MainMenu), main_menu_setup_sys)
+            .add_systems(OnExit(MenuState::MainMenu), despawn_entities::<OnMainMenuScreen>)
+            .add_systems(OnEnter(MenuState::Settings), settings_menu_setup_sys)
+            .add_systems(OnExit(MenuState::Settings), despawn_entities::<OnSettingsMenuScreen>)
+            .add_systems(
+                Update,
+                (
+                    button_color_sys,
+                    menu_button_action_sys,
+                    pause_menu_listener_sys,
+                )
+                    .run_if(in_state(GameState::Menu)),
+            );
     }
 }
 
 /// Tag Entities with this if they appear on any menu screen
-/// 
+///
 /// Can be useful to despawn (or otherwise affect)
 /// the entire Menu regardless of where you are in it
-/// e.g. if you hit Esc while in [`GameState::Menu`] it should despawn all 
+/// e.g. if you hit Esc while in [`GameState::Menu`] it should despawn all
 /// [`OnMenuScreen`] entities and switch to [`GameState::Gam`e], which would be difficult to do
 /// if we used only [`OnMainMenuScreen`] and [`OnSettingsMenuScreen`]
 #[derive(Component)]
@@ -58,12 +60,12 @@ pub enum MenuState {
     MainMenu,
     Settings,
     #[default]
-    Disabled
+    Disabled,
 }
 
 fn menu_setup_sys(mut menu_state: ResMut<NextState<MenuState>>) {
     menu_state.set(MenuState::MainMenu);
-    info!("menu state: main menu")
+    debug!("menu state: main menu")
 }
 
 fn main_menu_setup_sys(
@@ -78,25 +80,40 @@ fn main_menu_setup_sys(
         Node {
             margin: UiRect::all(Val::Px(50.0)),
             ..default()
-        }
+        },
     );
     cmd.entity(container).
     insert((
         OnMenuScreen,
         OnMainMenuScreen
     ))
-    .with_children(|parent| {
-        parent.spawn(title_text);
-    })
-    .with_children( |mut parent| {
-        ButtonNode::spawn(&mut parent, &asset_server, ButtonAction::Menu(MenuButtonAction::NewGame), "New Game".to_string());
-    })
-    .with_children( |mut parent| {
-        ButtonNode::spawn(&mut parent, &asset_server, ButtonAction::Settings, "Settings".to_string());
-    })
-    .with_children( |mut parent| {
-        ButtonNode::spawn(&mut parent, &asset_server, ButtonAction::Quit, "Quit".to_string());
-    });
+        .with_children(|parent| {
+            parent.spawn(title_text);
+        })
+        .with_children(|mut parent| {
+            ButtonNode::spawn(
+                &mut parent,
+                &asset_server,
+                ButtonAction::Menu(MenuButtonAction::NewGame),
+                "New Game".to_string(),
+            );
+        })
+        .with_children(|mut parent| {
+            ButtonNode::spawn(
+                &mut parent,
+                &asset_server,
+                ButtonAction::Settings,
+                "Settings".to_string(),
+            );
+        })
+        .with_children(|mut parent| {
+            ButtonNode::spawn(
+                &mut parent,
+                &asset_server,
+                ButtonAction::Quit,
+                "Quit".to_string(),
+            );
+        });
 }
 
 pub(crate) fn settings_menu_setup_sys(
@@ -110,7 +127,7 @@ pub(crate) fn settings_menu_setup_sys(
         Node {
             margin: UiRect::all(Val::Px(50.0)),
             ..default()
-        }
+        },
     );
     let container = MenuContainerNode::spawn(&mut cmd);
     cmd.entity(container).
@@ -119,11 +136,16 @@ pub(crate) fn settings_menu_setup_sys(
         OnSettingsMenuScreen
     ))
     .with_children( |parent| {
-        parent.spawn(sub_title_text);
-    })
-    .with_children( |mut parent| {
-        ButtonNode::spawn(&mut parent, &asset_server, ButtonAction::Menu(MenuButtonAction::BackToMenu), "Back to Menu".to_string());
-    });
+            parent.spawn(sub_title_text);
+        })
+        .with_children(|mut parent| {
+            ButtonNode::spawn(
+                &mut parent,
+                &asset_server,
+                ButtonAction::Menu(MenuButtonAction::BackToMenu),
+                "Back to Menu".to_string(),
+            );
+        });
 }
 
 /// Defines the actions that should occur on [Button] presses
@@ -135,10 +157,7 @@ fn menu_button_action_sys(
     mut game_state: ResMut<NextState<GameState>>,
     mut menu_state: ResMut<NextState<MenuState>>,
     mut pause_state: ResMut<NextState<PauseMenuState>>,
-    interactions: Query<
-        (&Interaction, &ButtonAction),
-        (Changed<Interaction>, With<Button>)
-    >,
+    interactions: Query<(&Interaction, &ButtonAction), (Changed<Interaction>, With<Button>)>,
 ) {
     for (interaction, button_action) in &interactions {
         if *interaction == Interaction::Pressed {
@@ -148,29 +167,31 @@ fn menu_button_action_sys(
                 }
                 ButtonAction::Settings => {
                     menu_state.set(MenuState::Settings);
-                    info!("menu state: settings")
+                    debug!("menu state: settings")
                 }
                 ButtonAction::Menu(MenuButtonAction::BackToMenu) => {
                     match **current_game_state {
                         GameState::Pause => {
                             // return to pause menu
                             pause_state.set(PauseMenuState::PauseMenu);
-                            info!("pause state: pause menu");
+                            debug!("pause state: pause menu");
                         }
                         GameState::Menu => {
                             // return to main menu
                             menu_state.set(MenuState::MainMenu);
-                            info!("menu state: main menu");
+                            debug!("menu state: main menu");
                         }
                         _ => {
-                            panic!("you have reached something unreachable, trying to go BackToMenu in a GameState that is not Menu or Pause");
+                            panic!(
+                                "you have reached something unreachable, trying to go BackToMenu in a GameState that is not Menu or Pause"
+                            );
                         }
                     }
                 }
                 ButtonAction::Menu(MenuButtonAction::NewGame) => {
                     game_state.set(GameState::Game);
                     menu_state.set(MenuState::Disabled);
-                    info!("menu state: disabled and game state: game!")
+                    debug!("menu state: disabled and game state: game!")
                 }
                 _ => {
                     panic!("You've somehow done something that isn't a menu thing, in the menu.")
