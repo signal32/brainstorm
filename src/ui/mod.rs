@@ -212,16 +212,16 @@ pub fn pause_menu_listener_sys(
         match **game_state {
             GameState::Game => {
                 next_game_state.set(GameState::Pause);
-                info!("game state changed to paused!");
+                debug!("game state changed to paused!");
             }
             GameState::Menu => {
                 match **menu_state {
                     MenuState::MainMenu => {
-                        info!("Nothing should happen by pressing Esc here");
+                        debug!("Nothing should happen by pressing Esc here");
                     }
                     MenuState::Settings => {
                         next_menu_state.set(MenuState::MainMenu);
-                        info!("menu state is now main menu");
+                        debug!("menu state is now main menu");
                     }
                     _ => {
                         panic!("HOW DID WE GET HERE???");
@@ -233,11 +233,11 @@ pub fn pause_menu_listener_sys(
                     PauseMenuState::PauseMenu => {
                         next_pause_state.set(PauseMenuState::Disabled);
                         next_game_state.set(GameState::Game);
-                        info!("pause menu: disabled, and game state: game");
+                        debug!("pause menu: disabled, and game state: game");
                     }
                     PauseMenuState::Settings => {
                         next_pause_state.set(PauseMenuState::PauseMenu);
-                        info!("pause state: pause menu");
+                        debug!("pause state: pause menu");
                     }
                     _ => {
                         panic!("HOW DID WE GET HERE???");
@@ -246,7 +246,7 @@ pub fn pause_menu_listener_sys(
             }
             GameState::Splash => {
                 // do nothing lol
-                info!("HAH silly, u can't Esc the splash screen, just wait.");
+                debug!("HAH silly, u can't Esc the splash screen, just wait.");
             }
             _ => {
                 panic!("bro how did you even get here");

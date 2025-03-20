@@ -117,17 +117,17 @@ fn pause_button_action_sys (
                 }
                 ButtonAction::Settings => {
                     pause_state.set(PauseMenuState::Settings);
-                    info!("pause state: settings")
+                    debug!("pause state: settings")
                 }
                 ButtonAction::Pause(PauseButtonAction::QuitToTitle) => {
                     game_state.set(GameState::Menu);
                     pause_state.set(PauseMenuState::Disabled);
-                    info!("pause state: disabled and game state: menu!")
+                    debug!("pause state: disabled and game state: menu!")
                 }
                 ButtonAction::Pause(PauseButtonAction::Resume) => {
                     game_state.set(GameState::Game);
                     pause_state.set(PauseMenuState::Disabled);
-                    info!("pause state: disabled and game state: game!")
+                    debug!("pause state: disabled and game state: game!")
                 }
                 _ => {
                     panic!("You've somehow done something that isn't a menu thing, in the menu.")
