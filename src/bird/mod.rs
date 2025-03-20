@@ -22,6 +22,7 @@ impl Plugin for BirdPlugin {
             bird_spawn_sys,
             bird_hit_sys,
             update_bird_tweet_sys,
+            setup_bird_hunger_bar_sys,
             update_bird_hunger_bar_sys,
         ).run_if(in_state(GameState::Game)));
         app.add_systems(FixedPostUpdate, load_bird_assets_sys);
@@ -112,13 +113,26 @@ fn update_bird_hunger_bar_sys(
                 material.0 = materials.add(Color::Srgba(colour));
 
                 // make colour bar bigger
-                // todo: scale from bottom rather than center
-                mesh.0 = meshes.add(Rectangle::new(10., 100. * percent_full));
+                // TODO: scale existing meshes rather than make new ones
+                // although i don't believe this to be a performance problem
+                // it would be nice to interpolate between positions to create a smoothened animation
+                mesh.0 = meshes.add(Capsule2d::new(5., 100. * percent_full));
             }
         }
     }
 }
 
+fn setup_bird_hunger_bar_sys(
+    mut cmd: Commands,
+    added_hunger_bars: Query<Entity, Added<BirdHungerBar>>,
+) {
+    for bar in added_hunger_bars.iter() {
+        cmd.entity(bar).insert((
+            Mesh2d(Handle::default()),
+            MeshMaterial2d::<ColorMaterial>(Handle::default()),
+        ));
+    }
+}
 
 #[derive(Component)]
 struct BirdTweetText;
