@@ -1,6 +1,8 @@
 use bevy::{
     math::bounding::{Aabb2d, Bounded2d, IntersectsVolume}, prelude::*, utils::hashbrown::HashMap
 };
+use bevy::math::curve::Curve;
+
 use super::GameState;
 
 pub struct PhysicsPlugin;
@@ -86,6 +88,7 @@ pub struct ColliderContactEvent {
 pub struct TargetTransform {
     transform: Transform,
     s: f32,
+    easing_curve: EasingCurve<f32>,
 
     pub lerp_transform: bool,
     pub lerp_rotation: bool,
@@ -93,23 +96,33 @@ pub struct TargetTransform {
 }
 
 impl TargetTransform {
-    pub fn new(target: Transform) -> Self {
+    pub fn new(target: Transform, ease_function: EaseFunction) -> Self {
         TargetTransform {
             transform: target,
-            s: 0.,
+            s: 1.1,
+            easing_curve: EasingCurve::new(0., 1., ease_function),
             lerp_transform: true,
             lerp_rotation: true,
             lerp_scale: true,
         }
     }
 
-    pub fn update(&mut self, target: Transform) {
+    pub fn update(&mut self, target: Transform) -> &Self {
         self.transform = target;
-        self.s = 0.
+        self.reset()
+    }
+
+    pub fn reset(&mut self) -> &Self {
+        self.s = 0.;
+        return self
     }
 
     pub fn transform(&self) -> Transform {
         self.transform
+    }
+
+    pub fn sample_s(&self) -> f32 {
+        self.easing_curve.sample_clamped(self.s)
     }
 }
 
@@ -121,14 +134,15 @@ fn lerp_transform_sys(
             continue;
         }
 
+        let s = target.sample_s();
         if target.lerp_rotation {
-            tf.rotation = tf.rotation.lerp(target.transform.rotation, target.s);
+            tf.rotation = tf.rotation.lerp(target.transform.rotation, s);
         }
         if target.lerp_transform {
-            tf.translation = tf.translation.lerp(target.transform.translation, target.s);
+            tf.translation = tf.translation.lerp(target.transform.translation, s);
         }
         if target.lerp_scale {
-            tf.scale = tf.scale.lerp(target.transform.scale, target.s);
+            tf.scale = tf.scale.lerp(target.transform.scale, s);
         }
 
         target.s += 0.01;

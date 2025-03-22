@@ -50,7 +50,7 @@ pub(super) fn bird_spawn_sys(
                     .unwrap_or(0);
                 let random_bird = &level_asset.birds[random_index];
 
-                let mut target_tf = TargetTransform::new(spawner_tf.clone());
+                let mut target_tf = TargetTransform::new(spawner_tf.clone(), EaseFunction::CubicOut);
                 target_tf.lerp_transform = false; // conflicts with movement if enabled
 
                 cmd.spawn((
