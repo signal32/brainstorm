@@ -1,11 +1,11 @@
-use std::f32::consts::PI;
-
+use super::asset::BirdAsset;
+use crate::{
+    level::{Level, LevelAsset},
+    util::AssetHandle,
+};
 use bevy::{prelude::*, utils::HashMap};
 use rand::Rng;
-
-use crate::level::{Level, LevelAsset};
-
-use super::asset::BirdAssetHandle;
+use std::f32::consts::PI;
 
 #[derive(Component)]
 pub struct BirdSpawner {
@@ -38,19 +38,22 @@ pub(super) fn bird_spawn_sys(
                 last_entity_spawn_time.insert(entity, time_now);
 
                 // Choose a bird from the level at random based based on its `spawn_probability`
-                let mut total_probability= 0.;
+                let mut total_probability = 0.;
                 let mut cumulative_probability = vec![];
                 for bird in level_asset.birds.iter() {
                     total_probability += bird.spawn_probability;
                     cumulative_probability.push(total_probability);
                 }
-                let random_p = rng.random_range(0. .. total_probability);
-                let random_index = cumulative_probability.iter().position(|p| &random_p <= p).unwrap_or(0);
+                let random_p = rng.random_range(0. ..total_probability);
+                let random_index = cumulative_probability
+                    .iter()
+                    .position(|p| &random_p <= p)
+                    .unwrap_or(0);
                 let random_bird = &level_asset.birds[random_index];
 
                 cmd.spawn((
-                    BirdAssetHandle(asset_server.load(random_bird.asset.as_str())),
-                    spawner_tf.clone()
+                    AssetHandle::<BirdAsset>(asset_server.load(random_bird.asset.as_str())),
+                    spawner_tf.clone(),
                 ));
             }
         }
@@ -77,9 +80,9 @@ pub(super) fn setup_spawner_sys(
                     let x = ((window_width - bird_padding) / (level.spawner_qty - 1) as f32) * i as f32;
 
                     let mut transform = Transform::from_xyz(
-                        x - (window_width - bird_padding) * 0.5 ,
+                        x - (window_width - bird_padding) * 0.5,
                         (window_height * 0.5) + 100.,
-                        50.
+                        50.,
                     );
                     transform.rotate_local_x(PI);
                     cmd.spawn((
@@ -90,10 +93,9 @@ pub(super) fn setup_spawner_sys(
                         transform,
                     ));
                 }
-            },
+            }
             // todo: handle despawn of level entities
-            _ => ()
+            _ => (),
         };
-     }
-
+    }
 }
