@@ -1,42 +1,24 @@
 use std::path::PathBuf;
-use bevy::{
-    prelude::*,
-    reflect::TypePath,
-};
+use bevy::prelude::*;
 use serde::Deserialize;
-use crate::{physics::{Collider, Velocity}, util::ron_asset_loader::RonAssetLoader};
-
+use crate::{physics::{Collider, Velocity}, util::EntityAssetReadyEvent};
 use super::{Bird, BirdHungerBar};
-
-pub struct BirdPlugin;
-
-impl Plugin for BirdPlugin {
-    fn build(&self, app: &mut App) {
-        app.init_asset::<BirdAsset>();
-        app.init_asset_loader::<RonAssetLoader<BirdAsset>>();
-        app.add_systems(FixedPostUpdate, load_bird_assets_sys);
-    }
-}
-
-
-/// Denotes an entity as being a bird, but loaded from a file.
-/// [load_bird_assets_sys] will attempt to load the asset path and
-/// on success add the [Bird] and other required components to the containing entity
-#[derive(Debug, Component)]
-pub struct BirdAssetHandle(pub Handle<BirdAsset>);
 
 /// Loads asset file and spawns remaining [Bird] components
 /// on entities with a [BirdAssetHandle].
 pub(super) fn load_bird_assets_sys(
     mut cmd: Commands,
-    bird_assets: Query<(Entity, &BirdAssetHandle), Without<Bird>>,
+    mut asset_events: EventReader<EntityAssetReadyEvent<BirdAsset>>,
     asset_server: Res<AssetServer>,
     assets: Res<Assets<BirdAsset>>,
 ) {
-    for (entity, bird_asset_path) in bird_assets.iter() {
-        if let Some(asset) = assets.get(&bird_asset_path.0) {
-            cmd.entity(entity)
-                .insert_if_new((
+
+    for EntityAssetReadyEvent((entities, asset_id)) in asset_events.read() {
+        let asset = assets.get(*asset_id).expect("asset does not exist");
+        for entity in entities {
+            cmd.entity(*entity)
+                .clear_children()
+                .insert((
                     Bird {
                         name: asset.name.clone(),
                         hunger: asset.hunger,
