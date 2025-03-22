@@ -8,9 +8,10 @@ pub struct PhysicsPlugin;
 impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<ColliderContactEvent>();
-        app.add_systems(Update, (
+        app.add_systems(FixedUpdate, (
             velocity_move_sys,
             update_collider_aabb_sys,
+            lerp_transform_sys,
         ).run_if(in_state(GameState::Game)));
         app.add_systems(PreUpdate, collider_contact_sys.run_if(in_state(GameState::Game)));
     }
@@ -79,4 +80,57 @@ fn collider_contact_sys(
 pub struct ColliderContactEvent {
     pub a: Entity,
     pub b: Entity,
+}
+
+#[derive(Debug, Component)]
+pub struct TargetTransform {
+    transform: Transform,
+    s: f32,
+
+    pub lerp_transform: bool,
+    pub lerp_rotation: bool,
+    pub lerp_scale: bool,
+}
+
+impl TargetTransform {
+    pub fn new(target: Transform) -> Self {
+        TargetTransform {
+            transform: target,
+            s: 0.,
+            lerp_transform: true,
+            lerp_rotation: true,
+            lerp_scale: true,
+        }
+    }
+
+    pub fn update(&mut self, target: Transform) {
+        self.transform = target;
+        self.s = 0.
+    }
+
+    pub fn transform(&self) -> Transform {
+        self.transform
+    }
+}
+
+fn lerp_transform_sys(
+    mut transforms_with_targets: Query<(&mut Transform, &mut TargetTransform)>
+) {
+    for (mut tf, mut target) in transforms_with_targets.iter_mut() {
+        if target.s > 1. {
+            continue;
+        }
+
+        if target.lerp_rotation {
+            tf.rotation = tf.rotation.lerp(target.transform.rotation, target.s);
+        }
+        if target.lerp_transform {
+            tf.translation = tf.translation.lerp(target.transform.translation, target.s);
+        }
+        if target.lerp_scale {
+            tf.scale = tf.scale.lerp(target.transform.scale, target.s);
+        }
+
+        target.s += 0.01;
+    }
 }
