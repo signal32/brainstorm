@@ -6,7 +6,7 @@ use bevy::{
 use serde::Deserialize;
 use crate::{physics::{Collider, Velocity}, util::ron_asset_loader::RonAssetLoader};
 
-use super::Bird;
+use super::{Bird, BirdHungerBar};
 
 pub struct BirdPlugin;
 
@@ -35,21 +35,28 @@ pub(super) fn load_bird_assets_sys(
 ) {
     for (entity, bird_asset_path) in bird_assets.iter() {
         if let Some(asset) = assets.get(&bird_asset_path.0) {
-            cmd.entity(entity).insert_if_new((
-                Bird {
-                    name: asset.name.clone(),
-                    hunger: asset.hunger,
-                },
-                Velocity(asset.velocity),
-                Collider::Rectangle(Rectangle::from_size(asset.size)),
-                Sprite {
-                    image: asset_server.load(asset.sprite.clone()),
-                    custom_size: Some(asset.size),
-                    image_mode: SpriteImageMode::Auto,
-                    flip_y: true,
-                    ..default()
-                },
-            ));
+            cmd.entity(entity)
+                .insert_if_new((
+                    Bird {
+                        name: asset.name.clone(),
+                        hunger: asset.hunger,
+                        initial_hunger: asset.hunger,
+                        on_feed_points: asset.on_feed_points,
+                    },
+                    Velocity(asset.velocity),
+                    Collider::Rectangle(Rectangle::from_size(asset.size)),
+                    Sprite {
+                        image: asset_server.load(asset.sprite.clone()),
+                        custom_size: Some(asset.size),
+                        image_mode: SpriteImageMode::Auto,
+                        flip_y: true,
+                        ..default()
+                    },
+                ))
+                .with_child((
+                    BirdHungerBar,
+                    Transform::from_xyz(asset.size.x * 0.6, 0., 200.),
+                ));
         }
     }
 }
@@ -62,4 +69,5 @@ pub struct BirdAsset {
     size: Vec2,
     sprite: PathBuf,
     velocity: f32,
+    on_feed_points: u32,
 }

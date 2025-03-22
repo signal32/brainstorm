@@ -8,6 +8,10 @@ LevelAsset (
             spawn_probability: 10.0
         ),
         LevelBird (
+            asset: "birds/big_chonker.ron",
+            spawn_probability: 0.1
+        ),
+        LevelBird (
             asset: "birds/swallow.ron",
             spawn_probability: 4.0
         ),

@@ -36,6 +36,7 @@ pub struct Level {
     ///
     /// TODO: would make sense to differentiate current level from next level.
     pub level_handle: Handle<LevelAsset>,
+    pub score: u32,
     /// Fallback level if none is given.
     default_level_path: PathBuf,
 }
