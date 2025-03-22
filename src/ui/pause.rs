@@ -10,6 +10,7 @@ use super::{
     MenuContainerNode,
     ButtonNode,
     MenuFont,
+    OnMenuScreen,
     MENU_TEXT_COLOR
 };
 use super::main_menu::{
@@ -38,15 +39,6 @@ impl Plugin for PausePlugin {
     }
 }
 
-/// Tag Entities with this if they appear on any menu screen
-/// 
-/// Can be useful to despawn (or otherwise affect)
-/// the entire Menu regardless of where you are in it
-/// e.g. if you hit Esc while in [`GameState::Menu`] it should despawn all 
-/// [`OnMenuScreen`] entities and switch to [`GameState::Game`], which would be difficult to do
-/// if we used only [`OnPauseMenuScreen`] and [`OnSettingsMenuScreen`]
-#[derive(Component)]
-struct OnMenuScreen;
 /// Tag Entities with this if they are visible on [PauseMenuState::PauseMenu]
 #[derive(Component)]
 struct OnPauseMenuScreen;

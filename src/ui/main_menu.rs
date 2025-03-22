@@ -10,6 +10,7 @@ use super::{
     MenuContainerNode,
     MenuButtonAction,
     MenuFont,
+    OnMenuScreen,
     MENU_TEXT_COLOR
 };
 
@@ -38,16 +39,7 @@ impl Plugin for MenuPlugin {
     }
 }
 
-/// Tag Entities with this if they appear on any menu screen
-///
-/// Can be useful to despawn (or otherwise affect)
-/// the entire Menu regardless of where you are in it
-/// e.g. if you hit Esc while in [`GameState::Menu`] it should despawn all
-/// [`OnMenuScreen`] entities and switch to [`GameState::Gam`e], which would be difficult to do
-/// if we used only [`OnMainMenuScreen`] and [`OnSettingsMenuScreen`]
-#[derive(Component)]
-struct OnMenuScreen;
-/// Tag Entities with this if they are visible on [MenuState::MainMenu]
+// Tag Entities with this if they are visible on [MenuState::MainMenu]
 #[derive(Component)]
 struct OnMainMenuScreen;
 /// Tag Entities with this if they are visible on [MenuState::Settings]

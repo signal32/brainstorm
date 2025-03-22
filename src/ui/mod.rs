@@ -4,10 +4,7 @@ pub mod main_menu;
 
 use bevy::prelude::*;
 use std::{path::PathBuf, sync::LazyLock};
-use super::{
-    GameState,
-    despawn_entities
-};
+use super::GameState;
 use main_menu::{
     MenuState,
     MenuPlugin
@@ -42,6 +39,17 @@ impl Plugin for UiPlugin {
         );
     }
 }
+
+/// Tag Entities with this if they appear on any menu screen
+///
+/// Can be useful to despawn (or otherwise affect)
+/// the entire Menu regardless of where you are in it
+/// e.g. if you hit Esc while in [`GameState::Menu`] it should despawn all
+/// [`OnMenuScreen`] entities and switch to [`GameState::Gam`e], which would be difficult to do
+/// if we used only [`OnMainMenuScreen`] and [`OnSettingsMenuScreen`]
+
+#[derive (Component)]
+pub struct OnMenuScreen;
 
 /// Enum of all the actions a [Button] should be able to perform,
 /// with [MenuButtonAction] and [PauseButtonAction] variants
@@ -252,5 +260,13 @@ pub fn pause_menu_listener_sys(
                 panic!("bro how did you even get here");
             }
         }
+    }
+}
+
+// stole this directly from an example but it seems a sensible way of removing
+// unneeded Entities with a given Component indiscriminantly
+fn despawn_entities<T: Component>(to_despawn: Query<Entity, With<T>>, mut commands: Commands) {
+    for entity in &to_despawn {
+        commands.entity(entity).despawn_recursive();
     }
 }

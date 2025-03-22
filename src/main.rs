@@ -87,10 +87,6 @@ pub(crate) enum GameState {
     Splash,
 }
 
-// a label component to tell us which things are loaded in the Game GameState
-#[derive(Component)]
-struct OnGameScreen;
-
 #[derive(Component)]
 struct Player {
     health: i32
@@ -114,7 +110,6 @@ fn setup_sys(
         Mesh2d(meshes.add(Annulus::new(25.0, 50.0))),
         MeshMaterial2d(materials.add(Color::WHITE)),
         Transform::from_xyz(0., - window_height / 2. + 75., 0.),
-        OnGameScreen,
     ));
 }
 
@@ -133,13 +128,5 @@ fn player_move_sys(
         if keys.pressed(KeyCode::KeyD) {
             player_tf.translation.x = (player_tf.translation.x + move_distance).min(width / 2.)
         }
-    }
-}
-
-// stole this directly from an example but it seems a sensible way of removing
-// unneeded Entities with a given Component indiscriminantly
-fn despawn_entities<T: Component>(to_despawn: Query<Entity, With<T>>, mut commands: Commands) {
-    for entity in &to_despawn {
-        commands.entity(entity).despawn_recursive();
     }
 }
