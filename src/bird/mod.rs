@@ -10,8 +10,8 @@ use rand::Rng;
 
 use crate::{
     level::Level,
-    physics::{ColliderContactEvent, TargetTransform, Velocity},
-    util::AssetManagerPlugin,
+    physics::{ColliderContactEvent, Velocity},
+    util::{AssetManagerPlugin, TargetTransform},
     GameState
 };
 

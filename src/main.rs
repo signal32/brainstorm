@@ -16,6 +16,7 @@ use physics::PhysicsPlugin;
 use projectile::{ProjectileLauncher, ProjectilePlugin};
 use menu::MenuPlugin;
 use pause::PausePlugin;
+use util::TransformInterpolationPlugin;
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -62,6 +63,7 @@ fn main() {
             MenuPlugin,
             PausePlugin,
             BirdPlugin,
+            TransformInterpolationPlugin,
             match args.level {
                 Some(level) => LevelPlugin { default_level: PathBuf::from(level) },
                 None => LevelPlugin::default()

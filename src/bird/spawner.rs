@@ -1,6 +1,6 @@
 use super::asset::BirdAsset;
 use crate::{
-    level::{Level, LevelAsset}, physics::TargetTransform, util::AssetHandle
+    level::{Level, LevelAsset}, util::{TargetTransform, AssetHandle}
 };
 use bevy::{prelude::*, utils::HashMap};
 use rand::Rng;
@@ -52,6 +52,7 @@ pub(super) fn bird_spawn_sys(
 
                 let mut target_tf = TargetTransform::new(spawner_tf.clone(), EaseFunction::CubicOut);
                 target_tf.lerp_transform = false; // conflicts with movement if enabled
+                target_tf.start();
 
                 cmd.spawn((
                     AssetHandle::<BirdAsset>(asset_server.load(random_bird.asset.as_str())),
