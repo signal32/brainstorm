@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 use bevy::prelude::*;
 use serde::Deserialize;
-use crate::{physics::{Collider, Velocity}, util::EntityAssetReadyEvent};
+use crate::{physics::{Collider, Velocity}, util::{EntityAssetReadyEvent, TargetTransform}};
 use super::{Bird, BirdHungerBar};
 
 /// Loads asset file and spawns remaining [Bird] components
@@ -16,6 +16,11 @@ pub(super) fn load_bird_assets_sys(
     for EntityAssetReadyEvent((entities, asset_id)) in asset_events.read() {
         let asset = assets.get(*asset_id).expect("asset does not exist");
         for entity in entities {
+            let mut target_tf = TargetTransform::new(Transform::IDENTITY, EaseFunction::ExponentialOut);
+            target_tf.duration_factor = asset.velocity * 0.015;
+            target_tf.lerp_transform = false; // conflicts with movement if enabled
+            target_tf.finish();
+
             cmd.entity(*entity)
                 .clear_children()
                 .insert((
@@ -34,6 +39,7 @@ pub(super) fn load_bird_assets_sys(
                         flip_y: true,
                         ..default()
                     },
+                    target_tf,
                 ))
                 .with_child((
                     BirdHungerBar,

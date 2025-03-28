@@ -17,6 +17,7 @@ pub struct TargetTransform {
     s: f32,
     easing_curve: EasingCurve<f32>,
 
+    pub duration_factor: f32,
     pub lerp_transform: bool,
     pub lerp_rotation: bool,
     pub lerp_scale: bool,
@@ -28,6 +29,7 @@ impl TargetTransform {
             transform: target,
             s: 0.,
             easing_curve: EasingCurve::new(0., 1., ease_function),
+            duration_factor: 1.,
             lerp_transform: true,
             lerp_rotation: true,
             lerp_scale: true,
@@ -80,6 +82,6 @@ fn interpolate_target_transform_sys(
             tf.scale = tf.scale.lerp(target.transform.scale, s);
         }
 
-        target.s += 0.01;
+        target.s += 0.01 * target.duration_factor;
     }
 }
