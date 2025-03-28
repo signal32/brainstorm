@@ -1,7 +1,6 @@
 use super::asset::BirdAsset;
 use crate::{
-    level::{Level, LevelAsset},
-    util::AssetHandle,
+    level::{Level, LevelAsset}, util::{TargetTransform, AssetHandle}
 };
 use bevy::{prelude::*, utils::HashMap};
 use rand::Rng;

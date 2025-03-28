@@ -1,6 +1,8 @@
 use bevy::{
     math::bounding::{Aabb2d, Bounded2d, IntersectsVolume}, prelude::*, utils::hashbrown::HashMap
 };
+use bevy::math::curve::Curve;
+
 use super::GameState;
 
 pub struct PhysicsPlugin;
@@ -8,7 +10,7 @@ pub struct PhysicsPlugin;
 impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<ColliderContactEvent>();
-        app.add_systems(Update, (
+        app.add_systems(FixedUpdate, (
             velocity_move_sys,
             update_collider_aabb_sys,
         ).run_if(in_state(GameState::Game)));
