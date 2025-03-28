@@ -1,10 +1,9 @@
 mod projectile;
 mod physics;
-mod menu;
-mod pause;
 mod bird;
 mod util;
 mod level;
+mod ui;
 
 use std::path::PathBuf;
 
@@ -14,8 +13,7 @@ use clap::{Parser, ValueEnum};
 use level::LevelPlugin;
 use physics::PhysicsPlugin;
 use projectile::{ProjectileLauncher, ProjectilePlugin};
-use menu::MenuPlugin;
-use pause::PausePlugin;
+use ui::UiPlugin;
 use util::TransformInterpolationPlugin;
 
 #[derive(Parser, Debug)]
@@ -60,9 +58,8 @@ fn main() {
                 },),
             PhysicsPlugin,
             ProjectilePlugin,
-            MenuPlugin,
-            PausePlugin,
             BirdPlugin,
+            UiPlugin,
             TransformInterpolationPlugin,
             match args.level {
                 Some(level) => LevelPlugin { default_level: PathBuf::from(level) },
@@ -70,11 +67,10 @@ fn main() {
             }
     ));
     app.add_systems(Startup, setup_sys);
-    app.add_systems(Update, ((
-        player_move_sys,
-        pause_menu_listener_sys
-    ).run_if(in_state(GameState::Game)),
-));
+    app.add_systems(Update,
+        (player_move_sys)
+        .run_if(in_state(GameState::Game)),
+    );
 
     app.init_state::<GameState>();
     if let Some(state) = args.initial_state {
@@ -88,14 +84,10 @@ fn main() {
 pub(crate) enum GameState {
     Game,
     Pause,
-    #[default]
     Menu,
+    #[default]
     Splash,
 }
-
-// a label component to tell us which things are loaded in the Game GameState
-#[derive(Component)]
-struct OnGameScreen;
 
 #[derive(Component)]
 struct Player {
@@ -120,9 +112,7 @@ fn setup_sys(
         Mesh2d(meshes.add(Annulus::new(25.0, 50.0))),
         MeshMaterial2d(materials.add(Color::WHITE)),
         Transform::from_xyz(0., - window_height / 2. + 75., 0.),
-        OnGameScreen,
     ));
-
 }
 
 fn player_move_sys(
@@ -140,61 +130,5 @@ fn player_move_sys(
         if keys.pressed(KeyCode::KeyD) {
             player_tf.translation.x = (player_tf.translation.x + move_distance).min(width / 2.)
         }
-    }
-}
-
-fn pause_menu_listener_sys(
-    keys: Res<ButtonInput<KeyCode>>,
-    mut game_state: ResMut<NextState<GameState>>
-) {
-    if keys.just_pressed(KeyCode::Escape) {
-        game_state.set(GameState::Pause);
-        info!("game paused");
-    }
-}
-
-// fn pause_menu_listener_sys(
-//     keys: Res<ButtonInput<KeyCode>>,
-//     mut game_state: ResMut<NextState<GameState>>,
-//     mut menu_state: ResMut<NextState<MenuState>>
-// ) {
-//     if keys.just_pressed(KeyCode::Escape) {
-//         match game_state {
-//             GameState::Game => {
-//                 game_state.set(GameState::Pause);
-//                 info!("game state changed to paused!");
-//             }
-//             GameState::Menu => {
-//                 match menu_state {
-//                     MenuState::MainMenu => {
-//                         menu_state.set(MenuState::Disabled);
-//                         game_state.set(GameState::Game);
-//                         info!("menu state is now diabled, and game state is game");
-//                     }
-//                     MenuState::Settings => {
-//                         menu_state.set(MenuState::MainMenu);
-//                         info!("menu state is now main menu");
-//                     }
-//                     _ => {
-//                         panic!("HOW DID WE GET HERE???");
-//                     }
-//                 }
-//             }
-//             GameState::Pause => {
-//                 info!("THIS NEEDS DOING YAS COME ON");
-//             }
-//             GameState::Splash => {
-//                 // do nothing lol
-//                 info!("HAH silly, u can't exit the splash screen, just wait.");
-//             }
-//         }
-//     }
-// }
-
-// stole this directly from an example but it seems a sensible way of removing
-// unneeded Entities with a given Component indiscriminantly
-fn despawn_screen<T: Component>(to_despawn: Query<Entity, With<T>>, mut commands: Commands) {
-    for entity in &to_despawn {
-        commands.entity(entity).despawn_recursive();
     }
 }
