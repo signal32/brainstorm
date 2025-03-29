@@ -14,7 +14,7 @@ impl Plugin for ProjectilePlugin {
 }
 
 #[derive(Component)]
-struct Projectile {
+pub struct Projectile {
     // payload:
 }
 

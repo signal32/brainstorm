@@ -11,6 +11,7 @@ use rand::Rng;
 use crate::{
     level::Level,
     physics::{ColliderContactEvent, Velocity},
+    projectile::Projectile,
     util::{AssetManagerPlugin, TargetTransform},
     GameState
 };
@@ -56,21 +57,25 @@ struct BirdHungerBar;
 fn bird_hit_sys(
     mut contact_ev: EventReader<ColliderContactEvent>,
     mut birds: Query<(&mut Velocity, &Transform, &mut TargetTransform, &mut Bird)>,
+    mut projectiles: Query<&Projectile>,
     mut level: ResMut<Level>,
 ) {
     let mut rng = rand::rng();
     for ev in contact_ev.read() {
-        // avoid total chaos by disavowing bird to bird collisions
-        if birds.get(ev.a).is_ok() && birds.get(ev.b).is_ok() {
-            continue;
-        }
-
-        // otherwise extract the bird from either of the two collisions, if any
+        // collision must be between a bird...
         let bird = if let Ok(b) = birds.get_mut(ev.a) { Some(b) }
         else if let Ok(b) =  birds.get_mut(ev.b) { Some(b) }
         else { None };
+        // ...and a projectile
+        let projectile = if let Ok(b) = projectiles.get_mut(ev.a) { Some(b) }
+        else if let Ok(b) =  projectiles.get_mut(ev.b) { Some(b) }
+        else { None };
 
-        if let Some((mut velocity, tf,  mut target_tf, mut bird)) = bird {
+        // if we have both then we're good :D
+        if let Some((
+            (mut velocity, tf,  mut target_tf, mut bird),
+            _ // the projectile
+        )) = bird.zip(projectile) {
             bird.hunger = bird.hunger.saturating_sub(1);
             level.score += bird.on_feed_points;
 
