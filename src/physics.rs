@@ -1,5 +1,5 @@
 use bevy::{
-    math::bounding::{Aabb2d, Bounded2d, IntersectsVolume}, prelude::*, utils::hashbrown::HashMap
+    color::palettes::css::RED, math::bounding::{Aabb2d, Bounded2d, IntersectsVolume}, prelude::*, utils::hashbrown::HashMap
 };
 use bevy::math::curve::Curve;
 
@@ -10,11 +10,12 @@ pub struct PhysicsPlugin;
 impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<ColliderContactEvent>();
-        app.add_systems(FixedUpdate, (
-            velocity_move_sys,
+        app.add_systems(FixedPreUpdate, (
             update_collider_aabb_sys,
+            debug_collisions_sys,
+            collider_contact_sys,
         ).run_if(in_state(GameState::Game)));
-        app.add_systems(PreUpdate, collider_contact_sys.run_if(in_state(GameState::Game)));
+        app.add_systems(FixedUpdate, velocity_move_sys.run_if(in_state(GameState::Game)));
     }
 }
 
@@ -40,13 +41,25 @@ fn velocity_move_sys(
 }
 
 #[derive(Component)]
-#[require(ColliderAabb)]
+#[require(ColliderAabb, ColliderIntersectionMode)]
 pub enum Collider {
     Rectangle(Rectangle)
 }
 
+#[derive(Debug, Component)]
+pub struct ColliderStatic;
+
 #[derive(Component, Default)]
 struct ColliderAabb(Option<Aabb2d>);
+
+#[derive(Debug, Default, PartialEq, Component)]
+pub enum ColliderIntersectionMode {
+    /// Can intersect with any other collider.
+    #[default]
+    AllowAll,
+    /// Can intersect with no other colliders
+    None,
+}
 
 fn update_collider_aabb_sys(
     mut colliders: Query<(&mut ColliderAabb, &Collider, &Transform), Changed<Transform>>
@@ -62,17 +75,62 @@ fn update_collider_aabb_sys(
 }
 
 fn collider_contact_sys(
-    moved_colliders: Query<(Entity, &ColliderAabb), Changed<ColliderAabb>>,
+    mut moved_colliders: Query<
+        (Entity, &ColliderAabb, &ColliderIntersectionMode, &mut Transform),
+        Or<(Changed<ColliderAabb>,With<ColliderStatic>)>
+    >,
     mut contact_evw: EventWriter<ColliderContactEvent>,
+    mut pre_collision_transforms: Local<HashMap<Entity, Transform>>,
+    mut removed: RemovedComponents<ColliderAabb>,
 ) {
+    let mut collisions = vec![];
+
     for [
-        (a_entity, a_aabb),
-        (b_entity, b_aabb)
+        (a_entity, a_aabb, a_mode, _),
+        (b_entity, b_aabb, b_mode, _)
     ] in moved_colliders.iter_combinations() {
         if let Some((a_aabb, b_aabb)) = a_aabb.0.zip(b_aabb.0) {
             if a_aabb.intersects(&b_aabb) {
                 contact_evw.send(ColliderContactEvent { a: a_entity, b: b_entity });
+                if *a_mode == ColliderIntersectionMode::None && *b_mode == ColliderIntersectionMode::None {
+                    collisions.push(a_entity);
+                    collisions.push(b_entity);
+                }
             }
+        }
+    }
+
+    // Keep track of all entities previous positions and reset them if in a collision
+    for (entity, _, _, mut tf) in moved_colliders.iter_mut() {
+        if collisions.contains(&entity) {
+            if let Some(prev_tf) = pre_collision_transforms.get(&entity) {
+                tf.translation = prev_tf.translation;
+            }
+        }
+        else {
+            pre_collision_transforms.insert(entity, tf.clone());
+        }
+    }
+
+    // Remove removed entities previous positions
+    for removed in removed.read() {
+        pre_collision_transforms.remove(&removed);
+    }
+}
+
+fn debug_collisions_sys(
+    mut gizmos: Gizmos,
+    mut contact_evw: EventReader<ColliderContactEvent>,
+    transforms: Query<&Transform>
+) {
+    for ColliderContactEvent { a, b } in contact_evw.read() {
+        if let Some((a_tf, b_tf)) =  transforms.get(*a).ok().zip(transforms.get(*b).ok()) {
+            gizmos.line_2d(
+                a_tf.translation.xy(),
+                b_tf.translation.xy(),
+                RED,
+            )
+
         }
     }
 }
