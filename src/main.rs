@@ -34,7 +34,10 @@ struct Args {
     level: Option<String>,
 
     #[arg(long)]
-    initial_state: Option<GameState>
+    initial_state: Option<GameState>,
+
+    #[arg(long)]
+    debug_render: Option<bool>,
 }
 
 fn main() {
@@ -58,7 +61,7 @@ fn main() {
                     }),
                     ..default()
                 },),
-            PhysicsPlugin,
+            PhysicsPlugin { debug_render: args.debug_render.unwrap_or_default()},
             ProjectilePlugin,
             BirdPlugin,
             UiPlugin,

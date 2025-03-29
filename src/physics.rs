@@ -1,21 +1,27 @@
 use bevy::{
     color::palettes::css::RED, math::bounding::{Aabb2d, Bounded2d, IntersectsVolume}, prelude::*, utils::hashbrown::HashMap
 };
-use bevy::math::curve::Curve;
 
 use super::GameState;
 
-pub struct PhysicsPlugin;
+#[derive(Default)]
+pub struct PhysicsPlugin {
+    pub debug_render: bool
+}
 
 impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<ColliderContactEvent>();
         app.add_systems(FixedPreUpdate, (
             update_collider_aabb_sys,
-            debug_collisions_sys,
             collider_contact_sys,
         ).run_if(in_state(GameState::Game)));
         app.add_systems(FixedUpdate, velocity_move_sys.run_if(in_state(GameState::Game)));
+
+        if self.debug_render {
+            app.add_systems(FixedUpdate, debug_collisions_sys);
+        }
+
     }
 }
 
