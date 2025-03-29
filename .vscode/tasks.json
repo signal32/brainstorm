@@ -22,8 +22,29 @@
 			],
 			"args": [
 				"--",
-				"--initial-state=game"
+				"--initial-state=game",
 			]
 		},
+		{
+			"label": "rust: cargo run [Level]",
+			"type": "cargo",
+			"command": "run",
+			"problemMatcher": [
+				"$rustc"
+			],
+			"args": [
+				"--",
+				"--initial-state=game",
+				"--level=${input:level}",
+			]
+		},
+	],
+	"inputs": [
+		{
+			"id": "level",
+			"type": "promptString",
+			"description": "Enter the level path",
+			"default": "levels/level1.ron"
+		}
 	]
 }
