@@ -1,0 +1,129 @@
+use std::path::PathBuf;
+use bevy::prelude::*;
+use serde::Deserialize;
+use crate::{
+    level::LevelAsset, projectile::ProjectileLauncher,
+    util::{AssetHandle, AssetManagerPlugin, EntityAssetReadyEvent},
+    GameState
+};
+
+pub struct PlayerPlugin;
+
+impl Plugin for PlayerPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_plugins(AssetManagerPlugin::<PlayerAsset>::default());
+        app.add_systems(Update, (
+            setup_player_sys,
+            on_player_asset_ready_sys,
+            player_move_sys.run_if(in_state(GameState::Game)),
+        ));
+    }
+}
+
+#[derive(Debug, Component)]
+struct Player {
+    health: i32,
+    speed: f32,
+}
+
+#[derive(Debug, Component)]
+struct PlayerName(String);
+
+#[derive(Debug, Component)]
+struct PlayerControls {
+    move_left: KeyCode,
+    move_right: KeyCode,
+    sprint: KeyCode,
+    fire: KeyCode
+}
+
+
+fn setup_player_sys(
+    mut cmd: Commands,
+    mut level_asset_evts: EventReader<AssetEvent<LevelAsset>>,
+    level_assets: Res<Assets<LevelAsset>>,
+    asset_server: Res<AssetServer>,
+) {
+    for evt in level_asset_evts.read() {
+        match evt {
+            AssetEvent::LoadedWithDependencies { id } => {
+                let level = level_assets.get(*id).expect("Level should exist");
+                let player_count: usize = 1; //TODO get this from game state
+
+                for (player_index, player) in level.players[0..player_count].iter().enumerate() {
+                    cmd.spawn((
+                        AssetHandle::<PlayerAsset>(asset_server.load(player.asset.clone())),
+                        PlayerName(format!("Player {}", player_index + 1)),
+                        PlayerControls{
+                            move_left: KeyCode::KeyA,
+                            move_right: KeyCode::KeyD,
+                            sprint: KeyCode::ShiftLeft,
+                            fire: KeyCode::Space,
+                        },
+                        Transform::from_xyz(player.initial_position.x, player.initial_position.y, 0.),
+                    ));
+                }
+            },
+            _ => ()
+        }
+    }
+}
+
+#[derive(Asset, TypePath, Debug, Deserialize, Default)]
+struct PlayerAsset {
+    sprite: PathBuf,
+    speed: f32,
+    health: i32,
+}
+
+fn on_player_asset_ready_sys(
+    mut cmd: Commands,
+    mut asset_ready_evts: EventReader<EntityAssetReadyEvent<PlayerAsset>>,
+    assets: Res<Assets<PlayerAsset>>,
+
+    // Asset serving
+    asset_server: Res<AssetServer>,
+) {
+    for EntityAssetReadyEvent((entities, asset_id)) in asset_ready_evts.read() {
+        let asset = assets.get(*asset_id).expect("Asset should exist");
+
+        for entity in entities {
+            cmd
+                .entity(*entity)
+                .insert((
+                    Player {
+                        health: asset.health,
+                        speed: asset.speed,
+                    },
+                    ProjectileLauncher {
+                        launch_key: KeyCode::Space
+                    },
+                    Sprite {
+                        image: asset_server.load(asset.sprite.clone()),
+                        custom_size: Some(Vec2::splat(100.)),
+                        image_mode: SpriteImageMode::Auto,
+                        flip_y: true,
+                        ..default()
+                    },
+                ));
+        }
+    }
+}
+
+fn player_move_sys(
+    mut players: Query<(&mut Transform, &PlayerControls), With<Player>>,
+    windows: Query<&Window>,
+    keys: Res<ButtonInput<KeyCode>>
+) {
+    for (mut player_tf, controls) in players.iter_mut() {
+        let width = windows.single().width();
+        let move_distance = if keys.pressed(controls.sprint) { 25. } else { 10. };
+
+        if keys.pressed(controls.move_left) {
+            player_tf.translation.x = (player_tf.translation.x -move_distance).max(-width / 2.)
+        }
+        if keys.pressed(controls.move_right) {
+            player_tf.translation.x = (player_tf.translation.x + move_distance).min(width / 2.)
+        }
+    }
+}

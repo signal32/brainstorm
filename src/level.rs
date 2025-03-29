@@ -47,7 +47,8 @@ pub struct LevelAsset {
     pub spawn_probability: f32,
     pub spawn_cooldown: f32,
     pub spawner_qty: i32,
-    pub birds: Vec<LevelBird>
+    pub birds: Vec<LevelBird>,
+    pub players: Vec<LevelPlayer>,
 }
 
 /// Bird used in the level.
@@ -55,6 +56,12 @@ pub struct LevelAsset {
 pub struct LevelBird {
     pub asset: String,
     pub spawn_probability: f32
+}
+
+#[derive(Debug, Deserialize)]
+pub struct LevelPlayer {
+    pub asset: PathBuf,
+    pub initial_position: Vec2,
 }
 
 /// Wait for current level asset to load then setup game and transition to [GameState::Game] when ready.
