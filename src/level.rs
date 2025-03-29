@@ -1,9 +1,13 @@
 use std::path::PathBuf;
 
-use bevy::{color::palettes::css::{GREEN, ORANGE, RED}, prelude::*};
+use bevy::{color::palettes::css::{GREEN, ORANGE}, prelude::*};
 use serde::Deserialize;
 
-use crate::{physics::{Collider, ColliderIntersectionMode, ColliderStatic}, util::ron_asset_loader::RonAssetLoader, GameState};
+use crate::{
+    physics::{Collider, ColliderIntersectionMode, ColliderStatic},
+    util::ron_asset_loader::RonAssetLoader,
+    GameState
+};
 
 pub struct LevelPlugin {
     pub default_level: PathBuf

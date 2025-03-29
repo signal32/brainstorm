@@ -43,7 +43,6 @@ struct PlayerControls {
     fire: KeyCode
 }
 
-
 fn setup_player_sys(
     mut cmd: Commands,
     mut level_asset_evts: EventReader<AssetEvent<LevelAsset>>,
@@ -90,8 +89,6 @@ fn on_player_asset_ready_sys(
     mut cmd: Commands,
     mut asset_ready_evts: EventReader<EntityAssetReadyEvent<PlayerAsset>>,
     assets: Res<Assets<PlayerAsset>>,
-
-    // Asset serving
     asset_server: Res<AssetServer>,
 ) {
     for EntityAssetReadyEvent((entities, asset_id)) in asset_ready_evts.read() {
@@ -123,7 +120,6 @@ fn on_player_asset_ready_sys(
 
 fn player_move_sys(
     mut players: Query<(&mut Transform, &Player, &PlayerControls)>,
-    windows: Query<&Window>,
     keys: Res<ButtonInput<KeyCode>>
 ) {
     for (mut player_tf, player, controls) in players.iter_mut() {
