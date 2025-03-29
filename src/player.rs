@@ -2,10 +2,14 @@ use std::path::PathBuf;
 use bevy::prelude::*;
 use serde::Deserialize;
 use crate::{
-    level::LevelAsset, projectile::ProjectileLauncher,
-    util::{AssetHandle, AssetManagerPlugin, EntityAssetReadyEvent},
-    GameState
+    level::LevelAsset,
+    physics::{Collider, ColliderIntersectionMode},
+     projectile::ProjectileLauncher,
+     util::{AssetHandle, AssetManagerPlugin, EntityAssetReadyEvent},
+     GameState
 };
+
+const PLAYER_SPRINT_MULTIPLIER: f32 = 3.;
 
 pub struct PlayerPlugin;
 
@@ -33,6 +37,8 @@ struct PlayerName(String);
 struct PlayerControls {
     move_left: KeyCode,
     move_right: KeyCode,
+    move_up: KeyCode,
+    move_down: KeyCode,
     sprint: KeyCode,
     fire: KeyCode
 }
@@ -57,10 +63,14 @@ fn setup_player_sys(
                         PlayerControls{
                             move_left: KeyCode::KeyA,
                             move_right: KeyCode::KeyD,
+                            move_up: KeyCode::KeyW,
+                            move_down: KeyCode::KeyS,
                             sprint: KeyCode::ShiftLeft,
                             fire: KeyCode::Space,
                         },
                         Transform::from_xyz(player.initial_position.x, player.initial_position.y, 0.),
+                        Collider::Rectangle(Rectangle::new(100., 100.)),
+                        ColliderIntersectionMode::None,
                     ));
                 }
             },
@@ -110,20 +120,29 @@ fn on_player_asset_ready_sys(
     }
 }
 
+
 fn player_move_sys(
-    mut players: Query<(&mut Transform, &PlayerControls), With<Player>>,
+    mut players: Query<(&mut Transform, &Player, &PlayerControls)>,
     windows: Query<&Window>,
     keys: Res<ButtonInput<KeyCode>>
 ) {
-    for (mut player_tf, controls) in players.iter_mut() {
-        let width = windows.single().width();
-        let move_distance = if keys.pressed(controls.sprint) { 25. } else { 10. };
+    for (mut player_tf, player, controls) in players.iter_mut() {
+
+        let is_sprinting = keys.pressed(controls.sprint);
+        let move_distance = if is_sprinting { player.speed * PLAYER_SPRINT_MULTIPLIER } else { player.speed };
 
         if keys.pressed(controls.move_left) {
-            player_tf.translation.x = (player_tf.translation.x -move_distance).max(-width / 2.)
+            player_tf.translation.x -= move_distance
         }
         if keys.pressed(controls.move_right) {
-            player_tf.translation.x = (player_tf.translation.x + move_distance).min(width / 2.)
+            player_tf.translation.x += move_distance
         }
+        if keys.pressed(controls.move_up) {
+            player_tf.translation.y += move_distance;
+        }
+        if keys.pressed(controls.move_down) {
+            player_tf.translation.y -= move_distance;
+        }
+
     }
 }

@@ -88,10 +88,6 @@ pub(crate) enum GameState {
     Splash,
 }
 
-#[derive(Component)]
-struct Player {
-    health: i32
-}
 
 fn setup_sys(
     mut cmd: Commands,
@@ -99,8 +95,6 @@ fn setup_sys(
     mut materials: ResMut<Assets<ColorMaterial>>,
     windows: Query<&Window>
 ) {
-    let window_height = windows.single().height();
-
     cmd.spawn(Camera2d);
 
     // cmd.spawn((
