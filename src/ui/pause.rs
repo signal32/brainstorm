@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use crate::ui::MenuButtonAction;
+
 use super::{
     button_color_sys,
     despawn_entities,
@@ -122,7 +124,7 @@ fn pause_button_action_sys (
                     debug!("pause state: disabled and game state: game!")
                 }
                 _ => {
-                    panic!("You've somehow done something that isn't a menu thing, in the menu.")
+                    panic!("You've somehow done something that isn't a pause thing, in the pause menu.")
                 }
             }
         }
