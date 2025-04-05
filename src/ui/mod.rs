@@ -1,6 +1,7 @@
 pub mod splash;
 pub mod pause;
 pub mod main_menu;
+pub mod settings;
 
 use bevy::prelude::*;
 use std::{path::PathBuf, sync::LazyLock};
@@ -37,6 +38,11 @@ impl Plugin for UiPlugin {
             (pause_menu_listener_sys)
             .run_if(in_state(GameState::Game))
         );
+        app.add_systems(Update,
+            button_color_sys
+            .run_if(in_state(GameState::Menu)
+            .or(in_state(GameState::Pause)))
+        );
     }
 }
 
@@ -46,7 +52,7 @@ impl Plugin for UiPlugin {
 /// the entire Menu regardless of where you are in it
 /// e.g. if you hit Esc while in [`GameState::Menu`] it should despawn all
 /// [`OnMenuScreen`] entities and switch to [`GameState::Gam`e], which would be difficult to do
-/// if we used only [`OnMainMenuScreen`] and [`OnSettingsMenuScreen`]
+/// if we used only [`OnMainMenuScreen`] and [`OnSettingsScreen`]
 
 #[derive (Component)]
 pub struct OnMenuScreen;
@@ -59,14 +65,20 @@ pub struct OnMenuScreen;
 pub(crate) enum ButtonAction {
     Menu(MenuButtonAction),
     Pause(PauseButtonAction),
+    GoToSettings,
+    Settings(SettingsButtonAction),
     Quit,
-    Settings,
 } 
+
+/// Enum of all actions a settings [Button] should be able to perform
+#[derive(Debug)]
+pub(crate) enum SettingsButtonAction {
+    BackToMenu,
+}
 
 /// Enum of all actions a menu [Button] should be able to perform
 #[derive(Debug)]
 pub(crate) enum MenuButtonAction {
-    BackToMenu,
     NewGame
 }
 
@@ -228,11 +240,12 @@ pub fn pause_menu_listener_sys(
                         debug!("Nothing should happen by pressing Esc here");
                     }
                     MenuState::Settings => {
+                        // TODO: handle this differently perhaps
                         next_menu_state.set(MenuState::MainMenu);
                         debug!("menu state is now main menu");
                     }
                     _ => {
-                        panic!("HOW DID WE GET HERE???");
+                        panic!("HOW DID WE GET HERE??? (main menu edition)");
                     }
                 }
             }
@@ -244,11 +257,12 @@ pub fn pause_menu_listener_sys(
                         debug!("pause menu: disabled, and game state: game");
                     }
                     PauseMenuState::Settings => {
+                        // TODO: handle this differently perhaps
                         next_pause_state.set(PauseMenuState::PauseMenu);
                         debug!("pause state: pause menu");
                     }
                     _ => {
-                        panic!("HOW DID WE GET HERE???");
+                        panic!("HOW DID WE GET HERE??? (pause edition)");
                     }
                 }
             }

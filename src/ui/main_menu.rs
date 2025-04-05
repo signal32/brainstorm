@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 
 use super::{
-    button_color_sys,
     despawn_entities,
     pause_menu_listener_sys,
     ButtonAction,
@@ -15,6 +14,7 @@ use super::{
 };
 
 use super::pause::PauseMenuState;
+use super::settings::SettingsPlugin;
 
 pub struct MenuPlugin;
 
@@ -25,12 +25,9 @@ impl Plugin for MenuPlugin {
             .add_systems(OnExit(GameState::Menu), despawn_entities::<OnMenuScreen>)
             .add_systems(OnEnter(MenuState::MainMenu), main_menu_setup_sys)
             .add_systems(OnExit(MenuState::MainMenu), despawn_entities::<OnMainMenuScreen>)
-            .add_systems(OnEnter(MenuState::Settings), settings_menu_setup_sys)
-            .add_systems(OnExit(MenuState::Settings), despawn_entities::<OnSettingsMenuScreen>)
             .add_systems(
                 Update,
                 (
-                    button_color_sys,
                     menu_button_action_sys,
                     pause_menu_listener_sys,
                 )
@@ -44,9 +41,9 @@ impl Plugin for MenuPlugin {
 struct OnMainMenuScreen;
 /// Tag Entities with this if they are visible on [MenuState::Settings]
 #[derive(Component)]
-pub(crate) struct OnSettingsMenuScreen;
+pub(crate) struct OnMenuScreen;
 
-// / Defines the MenuStates for the Main Menu screen
+/// Defines the MenuStates for the Main Menu screen
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
 pub enum MenuState {
     MainMenu,
@@ -94,7 +91,7 @@ fn main_menu_setup_sys(
             ButtonNode::spawn(
                 &mut parent,
                 &asset_server,
-                ButtonAction::Settings,
+                ButtonAction::GoToSettings,
                 "Settings".to_string(),
             );
         })
@@ -104,38 +101,6 @@ fn main_menu_setup_sys(
                 &asset_server,
                 ButtonAction::Quit,
                 "Quit".to_string(),
-            );
-        });
-}
-
-pub(crate) fn settings_menu_setup_sys(
-    mut cmd: Commands,
-    asset_server: Res<AssetServer>,
-) {
-    let sub_title_text = (
-        Text::new("Settings"),
-        MenuFont::sub_title_font(&asset_server),
-        TextColor(MENU_TEXT_COLOR),
-        Node {
-            margin: UiRect::all(Val::Px(50.0)),
-            ..default()
-        },
-    );
-    let container = MenuContainerNode::spawn(&mut cmd);
-    cmd.entity(container).
-    insert((
-        OnMenuScreen,
-        OnSettingsMenuScreen
-    ))
-    .with_children( |parent| {
-            parent.spawn(sub_title_text);
-        })
-        .with_children(|mut parent| {
-            ButtonNode::spawn(
-                &mut parent,
-                &asset_server,
-                ButtonAction::Menu(MenuButtonAction::BackToMenu),
-                "Back to Menu".to_string(),
             );
         });
 }

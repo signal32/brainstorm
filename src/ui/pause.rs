@@ -1,9 +1,6 @@
 use bevy::prelude::*;
 
-use crate::ui::MenuButtonAction;
-
 use super::{
-    button_color_sys,
     despawn_entities,
     pause_menu_listener_sys,
     ButtonAction,
@@ -33,7 +30,6 @@ impl Plugin for PausePlugin {
         .add_systems(OnEnter(PauseMenuState::Settings), settings_menu_setup_sys)
         .add_systems(OnExit(PauseMenuState::Settings), despawn_entities::<OnSettingsMenuScreen>)
         .add_systems(Update, (
-                button_color_sys,
                 pause_button_action_sys,
                 pause_menu_listener_sys
             ).run_if(in_state(GameState::Pause))
