@@ -11,7 +11,7 @@ use rand::Rng;
 use crate::{
     level::Level,
     physics::{ColliderContactEvent, Velocity},
-    util::AssetManagerPlugin,
+    util::{AssetManagerPlugin, TargetTransform},
     GameState
 };
 
@@ -55,7 +55,7 @@ struct BirdHungerBar;
 /// Makes birds fly away from non bird entities that collide with them.
 fn bird_hit_sys(
     mut contact_ev: EventReader<ColliderContactEvent>,
-    mut birds: Query<(&mut Velocity, &mut Transform, &mut Bird)>,
+    mut birds: Query<(&mut Velocity, &Transform, &mut TargetTransform, &mut Bird)>,
     mut level: ResMut<Level>,
 ) {
     let mut rng = rand::rng();
@@ -70,15 +70,17 @@ fn bird_hit_sys(
         else if let Ok(b) =  birds.get_mut(ev.b) { Some(b) }
         else { None };
 
-        if let Some((mut velocity, mut tf, mut bird)) = bird {
+        if let Some((mut velocity, tf,  mut target_tf, mut bird)) = bird {
             bird.hunger = bird.hunger.saturating_sub(1);
             level.score += bird.on_feed_points;
 
             // fly away once no longer hungry
             if bird.hunger == 0 {
                 velocity.0 *= 2.;
-                let rotate_rads = if rng.random_bool(0.5) { -2. } else { 2. };
-                tf.rotate_local_z(rotate_rads);
+
+                let mut new_target_tf = tf.clone();
+                new_target_tf.rotate_local_z(if rng.random_bool(0.5) { -2. } else { 2. });
+                target_tf.update(new_target_tf);
             }
         }
     }

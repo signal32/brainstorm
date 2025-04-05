@@ -14,6 +14,7 @@ use level::LevelPlugin;
 use physics::PhysicsPlugin;
 use projectile::{ProjectileLauncher, ProjectilePlugin};
 use ui::UiPlugin;
+use util::TransformInterpolationPlugin;
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -59,6 +60,7 @@ fn main() {
             ProjectilePlugin,
             BirdPlugin,
             UiPlugin,
+            TransformInterpolationPlugin,
             match args.level {
                 Some(level) => LevelPlugin { default_level: PathBuf::from(level) },
                 None => LevelPlugin::default()
