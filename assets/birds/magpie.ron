@@ -1,0 +1,8 @@
+BirdAsset (
+    name: "Magpie",
+    hunger: 6,
+    size: (120, 120),
+    sprite: "sprites/magpie.png",
+    velocity: 120.0,
+    on_feed_points: 20,
+)

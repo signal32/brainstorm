@@ -19,5 +19,9 @@ LevelAsset (
             asset: "birds/swallow_long.ron",
             spawn_probability: 0.5
         ),
+        LevelBird (
+            asset: "birds/magpie.ron",
+            spawn_probability: 2.0
+        ),
     ],
 )
