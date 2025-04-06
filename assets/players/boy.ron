@@ -1,0 +1,5 @@
+PlayerAsset (
+    sprite: "sprites/blue_bird.png",
+    speed: 10.0,
+    health: 100
+)
