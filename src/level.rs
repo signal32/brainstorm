@@ -96,7 +96,7 @@ fn unload_level_sys(
 }
 
 fn setup_level_plugin_sys(mut cmd: Commands) {
-    cmd.spawn((LevelRoot, Transform::default()));
+    cmd.spawn((LevelRoot, Transform::default(), InheritedVisibility::default()));
 }
 
 #[derive(Component)]
@@ -186,7 +186,7 @@ fn on_level_load_sys(
             },
             AssetEvent::Unused { .. } => {
                 info!("Clearing up level");
-                cmd.entity(*root).despawn_descendants();
+                cmd.entity(*root).try_despawn_descendants();
             }
             _ => (),
         }
@@ -214,10 +214,10 @@ fn despawn_entities(
     for event in collision_evts.read() {
         if let Some(_) = event.either_entity(&despawners) {
             if !despawners.contains(event.a) {
-                cmd.entity(event.a).despawn_recursive()
+                cmd.entity(event.a).try_despawn_recursive()
             }
             if !despawners.contains(event.b) {
-                cmd.entity(event.b).despawn_recursive()
+                cmd.entity(event.b).try_despawn_recursive()
             }
         };
     }
