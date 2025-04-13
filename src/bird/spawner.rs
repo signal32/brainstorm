@@ -1,6 +1,7 @@
 use super::asset::BirdAsset;
 use crate::{
-    level::{Level, LevelAsset}, util::{TargetTransform, AssetHandle}
+    level::{Level, LevelAsset, LevelRootEntity},
+    util::AssetHandle
 };
 use bevy::{prelude::*, utils::HashMap};
 use rand::Rng;
@@ -21,6 +22,7 @@ pub(super) fn bird_spawn_sys(
     level_assets: Res<Assets<LevelAsset>>,
     mut last_entity_spawn_time: Local<HashMap<Entity, f32>>,
     mut cmd: Commands,
+    root: LevelRootEntity,
 ) {
     let mut rng = rand::rng();
 
@@ -50,7 +52,7 @@ pub(super) fn bird_spawn_sys(
                     .unwrap_or(0);
                 let random_bird = &level_asset.birds[random_index];
 
-                cmd.spawn((
+                cmd.entity(*root).with_child((
                     AssetHandle::<BirdAsset>(asset_server.load(random_bird.asset.as_str())),
                     spawner_tf.clone(),
                 ));
@@ -65,6 +67,7 @@ pub(super) fn setup_spawner_sys(
     mut asset_ev: EventReader<AssetEvent<LevelAsset>>,
     level_assets: Res<Assets<LevelAsset>>,
     windows: Query<&Window>,
+    root: LevelRootEntity,
 ) {
     let window_height = windows.single().height();
     let window_width = windows.single().width();
@@ -84,7 +87,7 @@ pub(super) fn setup_spawner_sys(
                         50.,
                     );
                     transform.rotate_local_x(PI);
-                    cmd.spawn((
+                    cmd.entity(*root).with_child((
                         BirdSpawner {
                             spawn_probability: level.spawn_probability,
                             cooldown: level.spawn_cooldown,

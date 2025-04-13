@@ -2,11 +2,11 @@ use std::path::PathBuf;
 use bevy::prelude::*;
 use serde::Deserialize;
 use crate::{
-    level::LevelAsset,
+    level::{LevelAsset, LevelRootEntity},
     physics::{Collider, ColliderIntersectionMode},
-     projectile::ProjectileLauncher,
-     util::{AssetHandle, AssetManagerPlugin, EntityAssetReadyEvent},
-     GameState
+    projectile::ProjectileLauncher,
+    util::{AssetHandle, AssetManagerPlugin, EntityAssetReadyEvent},
+    GameState
 };
 
 const PLAYER_SPRINT_MULTIPLIER: f32 = 3.;
@@ -48,6 +48,7 @@ fn setup_player_sys(
     mut level_asset_evts: EventReader<AssetEvent<LevelAsset>>,
     level_assets: Res<Assets<LevelAsset>>,
     asset_server: Res<AssetServer>,
+    root: LevelRootEntity,
 ) {
     for evt in level_asset_evts.read() {
         match evt {
@@ -56,7 +57,7 @@ fn setup_player_sys(
                 let player_count: usize = 1; //TODO get this from game state
 
                 for (player_index, player) in level.players[0..player_count].iter().enumerate() {
-                    cmd.spawn((
+                    cmd.entity(*root).with_child((
                         AssetHandle::<PlayerAsset>(asset_server.load(player.asset.clone())),
                         PlayerName(format!("Player {}", player_index + 1)),
                         PlayerControls{
