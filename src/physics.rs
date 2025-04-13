@@ -1,5 +1,8 @@
 use bevy::{
-    color::palettes::css::RED, math::bounding::{Aabb2d, Bounded2d, IntersectsVolume}, prelude::*, utils::hashbrown::HashMap
+    color::palettes::css::RED,
+    ecs::query::{QueryData, WorldQuery},
+    math::bounding::{Aabb2d, Bounded2d, IntersectsVolume},
+    prelude::*, utils::hashbrown::HashMap
 };
 
 use super::GameState;
@@ -145,4 +148,29 @@ fn debug_collisions_sys(
 pub struct ColliderContactEvent {
     pub a: Entity,
     pub b: Entity,
+}
+
+impl ColliderContactEvent {
+    pub fn either<'world, 'state, T>(
+        &self,
+        query: &'world Query<'world, 'state, T::ReadOnly>
+    ) -> Option<<T::ReadOnly as WorldQuery>::Item<'world>> where T: QueryData, {
+        if let Ok(b) = query.get(self.a) {
+            Some(b)
+        } else if let Ok(b) = query.get(self.b) {
+            Some(b)
+        } else {
+            None
+        }
+    }
+
+    pub fn either_entity<T>(&self, query: &Query<T>) -> Option<Entity> where T: QueryData {
+        if let Ok(_) = query.get(self.a) {
+            Some(self.a)
+        } else if let Ok(_) = query.get(self.b) {
+            Some(self.b)
+        } else {
+            None
+        }
+    }
 }

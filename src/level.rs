@@ -4,7 +4,7 @@ use bevy::{color::palettes::css::{GREEN, ORANGE}, prelude::*};
 use serde::Deserialize;
 
 use crate::{
-    physics::{Collider, ColliderIntersectionMode, ColliderStatic},
+    physics::{Collider, ColliderContactEvent, ColliderIntersectionMode, ColliderStatic},
     util::ron_asset_loader::RonAssetLoader,
     GameState
 };
@@ -29,7 +29,7 @@ impl Plugin for LevelPlugin {
                 ..default()
             })
             .add_systems(OnEnter(GameState::Game), load_level_sys)
-            .add_systems(FixedUpdate, on_level_load_sys);
+            .add_systems(FixedUpdate, (on_level_load_sys, despawn_entities));
     }
 }
 
@@ -77,6 +77,9 @@ fn load_level_sys(
     level.level_handle = asset_server.load(level.default_level_path.clone());
 }
 
+#[derive(Component)]
+struct Despawner;
+
 fn on_level_load_sys(
     mut cmd: Commands,
     mut level_asset_evts: EventReader<AssetEvent<LevelAsset>>,
@@ -107,6 +110,7 @@ fn on_level_load_sys(
                 let despawn_area_hit_boxes = enclosing_rectangles(width * 2., height * 3.);
                 for (rect, tf) in despawn_area_hit_boxes {
                     cmd.spawn((
+                        Despawner,
                         Collider::Rectangle(rect),
                         ColliderIntersectionMode::None,
                         ColliderStatic,
@@ -132,4 +136,21 @@ fn enclosing_rectangles(width: f32, height: f32) -> Vec<(Rectangle, Vec3)> {
         (Rectangle::new(bb_size, height + bb_size * 2.), Vec3::new(h_width, 0. , 0.)),
         (Rectangle::new(bb_size, height + bb_size * 2.), Vec3::new(-h_width, 0. , 0.)),
     ]
+}
+
+fn despawn_entities(
+    mut cmd: Commands,
+    mut collision_evts: EventReader<ColliderContactEvent>,
+    despawners: Query<(Entity, &Despawner)>,
+) {
+    for event in collision_evts.read() {
+        if let Some(_) = event.either_entity(&despawners) {
+            if !despawners.contains(event.a) {
+                cmd.entity(event.a).despawn_recursive()
+            }
+            if !despawners.contains(event.b) {
+                cmd.entity(event.b).despawn_recursive()
+            }
+        };
+    }
 }
