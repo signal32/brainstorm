@@ -4,6 +4,7 @@ use super::{
     button_color_sys,
     despawn_entities,
     pause_menu_listener_sys,
+    settings_menu_setup_sys,
     ButtonAction,
     ButtonNode,
     GameState,
@@ -11,10 +12,9 @@ use super::{
     MenuButtonAction,
     MenuFont,
     OnMenuScreen,
+    OnSettingsMenuScreen,
     MENU_TEXT_COLOR
 };
-
-use super::pause::PauseMenuState;
 
 pub struct MenuPlugin;
 
@@ -42,9 +42,6 @@ impl Plugin for MenuPlugin {
 // Tag Entities with this if they are visible on [MenuState::MainMenu]
 #[derive(Component)]
 struct OnMainMenuScreen;
-/// Tag Entities with this if they are visible on [MenuState::Settings]
-#[derive(Component)]
-pub(crate) struct OnSettingsMenuScreen;
 
 // / Defines the MenuStates for the Main Menu screen
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
@@ -108,47 +105,13 @@ fn main_menu_setup_sys(
         });
 }
 
-pub(crate) fn settings_menu_setup_sys(
-    mut cmd: Commands,
-    asset_server: Res<AssetServer>,
-) {
-    let sub_title_text = (
-        Text::new("Settings"),
-        MenuFont::sub_title_font(&asset_server),
-        TextColor(MENU_TEXT_COLOR),
-        Node {
-            margin: UiRect::all(Val::Px(50.0)),
-            ..default()
-        },
-    );
-    let container = MenuContainerNode::spawn(&mut cmd);
-    cmd.entity(container).
-    insert((
-        OnMenuScreen,
-        OnSettingsMenuScreen
-    ))
-    .with_children( |parent| {
-            parent.spawn(sub_title_text);
-        })
-        .with_children(|mut parent| {
-            ButtonNode::spawn(
-                &mut parent,
-                &asset_server,
-                ButtonAction::Menu(MenuButtonAction::BackToMenu),
-                "Back to Menu".to_string(),
-            );
-        });
-}
-
 /// Defines the actions that should occur on [Button] presses
 /// Allows quit, settings, back to main menu, and resume options
 /// Add this system to allow menu button actions to occur
 fn menu_button_action_sys(
-    current_game_state: Res<State<GameState>>,
     mut app_exit_events: EventWriter<AppExit>,
     mut game_state: ResMut<NextState<GameState>>,
     mut menu_state: ResMut<NextState<MenuState>>,
-    mut pause_state: ResMut<NextState<PauseMenuState>>,
     interactions: Query<(&Interaction, &ButtonAction), (Changed<Interaction>, With<Button>)>,
 ) {
     for (interaction, button_action) in &interactions {
@@ -162,23 +125,8 @@ fn menu_button_action_sys(
                     debug!("menu state: settings")
                 }
                 ButtonAction::Menu(MenuButtonAction::BackToMenu) => {
-                    match **current_game_state {
-                        GameState::Pause => {
-                            // return to pause menu
-                            pause_state.set(PauseMenuState::PauseMenu);
-                            debug!("pause state: pause menu");
-                        }
-                        GameState::Menu => {
-                            // return to main menu
-                            menu_state.set(MenuState::MainMenu);
-                            debug!("menu state: main menu");
-                        }
-                        _ => {
-                            panic!(
-                                "you have reached something unreachable, trying to go BackToMenu in a GameState that is not Menu or Pause"
-                            );
-                        }
-                    }
+                    menu_state.set(MenuState::MainMenu);
+                    debug!("menu state: main menu")
                 }
                 ButtonAction::Menu(MenuButtonAction::NewGame) => {
                     game_state.set(GameState::Game);

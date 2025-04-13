@@ -1,11 +1,10 @@
 use bevy::prelude::*;
 
-use crate::ui::MenuButtonAction;
-
 use super::{
     button_color_sys,
     despawn_entities,
     pause_menu_listener_sys,
+    settings_menu_setup_sys,
     ButtonAction,
     PauseButtonAction,
     GameState,
@@ -13,11 +12,8 @@ use super::{
     ButtonNode,
     MenuFont,
     OnMenuScreen,
-    MENU_TEXT_COLOR
-};
-use super::main_menu::{
-    settings_menu_setup_sys,
     OnSettingsMenuScreen,
+    MENU_TEXT_COLOR
 };
 
 pub struct PausePlugin;
@@ -25,13 +21,13 @@ pub struct PausePlugin;
 impl Plugin for PausePlugin {
     fn build(&self, app: &mut App) {
         app
-        .init_state::<PauseMenuState>()
+        .init_state::<PauseState>()
         .add_systems(OnEnter(GameState::Pause), pause_setup_sys)
         .add_systems(OnExit(GameState::Pause), despawn_entities::<OnMenuScreen>)
-        .add_systems(OnEnter(PauseMenuState::PauseMenu), pause_menu_setup_sys)
-        .add_systems(OnExit(PauseMenuState::PauseMenu), despawn_entities::<OnPauseMenuScreen>)
-        .add_systems(OnEnter(PauseMenuState::Settings), settings_menu_setup_sys)
-        .add_systems(OnExit(PauseMenuState::Settings), despawn_entities::<OnSettingsMenuScreen>)
+        .add_systems(OnEnter(PauseState::PauseMenu), pause_menu_setup_sys)
+        .add_systems(OnExit(PauseState::PauseMenu), despawn_entities::<OnPauseMenuScreen>)
+        .add_systems(OnEnter(PauseState::Settings), settings_menu_setup_sys)
+        .add_systems(OnExit(PauseState::Settings), despawn_entities::<OnSettingsMenuScreen>)
         .add_systems(Update, (
                 button_color_sys,
                 pause_button_action_sys,
@@ -41,12 +37,12 @@ impl Plugin for PausePlugin {
     }
 }
 
-/// Tag Entities with this if they are visible on [PauseMenuState::PauseMenu]
+/// Tag Entities with this if they are visible on [PauseState::PauseMenu]
 #[derive(Component)]
 struct OnPauseMenuScreen;
 
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
-pub(crate) enum PauseMenuState {
+pub(crate) enum PauseState {
     PauseMenu,
     Settings,
     #[default]
@@ -54,9 +50,9 @@ pub(crate) enum PauseMenuState {
 }
 
 fn pause_setup_sys(
-    mut pause_state: ResMut<NextState<PauseMenuState>>
+    mut pause_state: ResMut<NextState<PauseState>>
 ) {
-    pause_state.set(PauseMenuState::PauseMenu);
+    pause_state.set(PauseState::PauseMenu);
 }
 
 fn pause_menu_setup_sys(
@@ -97,7 +93,7 @@ fn pause_menu_setup_sys(
 fn pause_button_action_sys (
     mut app_exit_events: EventWriter<AppExit>,
     mut game_state: ResMut<NextState<GameState>>,
-    mut pause_state: ResMut<NextState<PauseMenuState>>,
+    mut pause_state: ResMut<NextState<PauseState>>,
     interactions: Query<
         (&Interaction, &ButtonAction),
         (Changed<Interaction>, With<Button>)
@@ -110,18 +106,22 @@ fn pause_button_action_sys (
                     app_exit_events.send(AppExit::Success);
                 }
                 ButtonAction::Settings => {
-                    pause_state.set(PauseMenuState::Settings);
+                    pause_state.set(PauseState::Settings);
                     debug!("pause state: settings")
                 }
                 ButtonAction::Pause(PauseButtonAction::QuitToTitle) => {
                     game_state.set(GameState::Menu);
-                    pause_state.set(PauseMenuState::Disabled);
+                    pause_state.set(PauseState::Disabled);
                     debug!("pause state: disabled and game state: menu!")
                 }
                 ButtonAction::Pause(PauseButtonAction::Resume) => {
                     game_state.set(GameState::Game);
-                    pause_state.set(PauseMenuState::Disabled);
+                    pause_state.set(PauseState::Disabled);
                     debug!("pause state: disabled and game state: game!")
+                }
+                ButtonAction::Pause(PauseButtonAction::BackToMenu) => {
+                    pause_state.set(PauseState::PauseMenu);
+                    debug!("returning to pause menu. pause state: pausemenu")
                 }
                 _ => {
                     panic!("You've somehow done something that isn't a pause thing, in the pause menu.")

@@ -10,7 +10,7 @@ use main_menu::{
     MenuPlugin
 };
 use pause::{
-    PauseMenuState,
+    PauseState,
     PausePlugin
 };
 use splash::SplashPlugin;
@@ -51,6 +51,10 @@ impl Plugin for UiPlugin {
 #[derive (Component)]
 pub struct OnMenuScreen;
 
+/// Tag Entities with this if they are visible on a settings substate e.g. [MenuState::Settings]
+#[derive(Component)]
+pub(crate) struct OnSettingsMenuScreen;
+
 /// Enum of all the actions a [Button] should be able to perform,
 /// with [MenuButtonAction] and [PauseButtonAction] variants
 /// To use the variants:
@@ -73,6 +77,7 @@ pub(crate) enum MenuButtonAction {
 /// Enum of all actions a [Button] on the pause menu should be able to perform
 #[derive(Debug)]
 pub(crate) enum PauseButtonAction {
+    BackToMenu,
     QuitToTitle,
     Resume
 }
@@ -211,10 +216,10 @@ pub fn pause_menu_listener_sys(
     keys: Res<ButtonInput<KeyCode>>,
     game_state: Res<State<GameState>>,
     menu_state: Res<State<MenuState>>,
-    pause_state: Res<State<PauseMenuState>>,
+    pause_state: Res<State<PauseState>>,
     mut next_game_state: ResMut<NextState<GameState>>,
     mut next_menu_state: ResMut<NextState<MenuState>>,
-    mut next_pause_state: ResMut<NextState<PauseMenuState>>
+    mut next_pause_state: ResMut<NextState<PauseState>>
 ) {
     if keys.just_pressed(KeyCode::Escape) {
         match **game_state {
@@ -238,13 +243,13 @@ pub fn pause_menu_listener_sys(
             }
             GameState::Pause => {
                 match **pause_state {
-                    PauseMenuState::PauseMenu => {
-                        next_pause_state.set(PauseMenuState::Disabled);
+                    PauseState::PauseMenu => {
+                        next_pause_state.set(PauseState::Disabled);
                         next_game_state.set(GameState::Game);
                         debug!("pause menu: disabled, and game state: game");
                     }
-                    PauseMenuState::Settings => {
-                        next_pause_state.set(PauseMenuState::PauseMenu);
+                    PauseState::Settings => {
+                        next_pause_state.set(PauseState::PauseMenu);
                         debug!("pause state: pause menu");
                     }
                     _ => {
@@ -261,6 +266,53 @@ pub fn pause_menu_listener_sys(
             }
         }
     }
+}
+
+pub(crate) fn settings_menu_setup_sys(
+    mut cmd: Commands,
+    asset_server: Res<AssetServer>,
+    current_state: Res<State<GameState>>,
+) {
+    let sub_title_text = (
+        Text::new("Settings"),
+        MenuFont::sub_title_font(&asset_server),
+        TextColor(MENU_TEXT_COLOR),
+        Node {
+            margin: UiRect::all(Val::Px(50.0)),
+            ..default()
+        },
+    );
+    let button_action;
+    match **current_state {
+        GameState::Menu => {
+            // return to main menu
+            button_action = ButtonAction::Menu(MenuButtonAction::BackToMenu);
+        }
+        GameState::Pause => {
+            // return to pause menu
+            button_action = ButtonAction::Pause(PauseButtonAction::BackToMenu);
+        }
+        _ => {
+            panic!("we should probably be panicking about this")
+        }
+    }
+    let container = MenuContainerNode::spawn(&mut cmd);
+    cmd.entity(container).
+    insert((
+        OnMenuScreen,
+        OnSettingsMenuScreen
+    ))
+    .with_children( |parent| {
+            parent.spawn(sub_title_text);
+        })
+        .with_children(|mut parent| {
+            ButtonNode::spawn(
+                &mut parent,
+                &asset_server,
+                button_action,
+                "Back to Menu".to_string(),
+            );
+        });
 }
 
 // stole this directly from an example but it seems a sensible way of removing
