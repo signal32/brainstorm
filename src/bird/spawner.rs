@@ -84,7 +84,7 @@ pub(super) fn setup_spawner_sys(
                     let mut transform = Transform::from_xyz(
                         x - (window_width - bird_padding) * 0.5,
                         (window_height * 0.5) + 100.,
-                        50.,
+                        level.spawner_z,
                     );
                     transform.rotate_local_x(PI);
                     cmd.entity(*root).with_child((

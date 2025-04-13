@@ -7,9 +7,7 @@ use bevy::{
 use serde::Deserialize;
 
 use crate::{
-    physics::{Collider, ColliderContactEvent, ColliderIntersectionMode, ColliderStatic},
-    util::ron_asset_loader::RonAssetLoader,
-    GameState
+    physics::{Collider, ColliderContactEvent, ColliderIntersectionMode, ColliderStatic}, util::ron_asset_loader::RonAssetLoader, GameState
 };
 
 pub struct LevelPlugin {
@@ -57,8 +55,10 @@ pub struct LevelAsset {
     pub spawn_probability: f32,
     pub spawn_cooldown: f32,
     pub spawner_qty: i32,
+    pub spawner_z: f32,
     pub birds: Vec<LevelBird>,
     pub players: Vec<LevelPlayer>,
+    pub layers: Vec<LevelLayer>,
 }
 
 /// Bird used in the level.
@@ -71,7 +71,14 @@ pub struct LevelBird {
 #[derive(Debug, Deserialize)]
 pub struct LevelPlayer {
     pub asset: PathBuf,
-    pub initial_position: Vec2,
+    pub initial_position: Vec3,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct LevelLayer {
+    image: PathBuf,
+    tiled: bool,
+    z: f32,
 }
 
 /// Wait for current level asset to load then setup game and transition to [GameState::Game] when ready.
@@ -118,10 +125,15 @@ fn on_level_load_sys(
     mut level: ResMut<Level>,
     root: LevelRootEntity,
     windows: Query<&Window>,
+    levels: Res<Assets<LevelAsset>>,
+    asset_server: Res<AssetServer>,
 ) {
     for evt in level_asset_evts.read() {
         match evt {
-            AssetEvent::LoadedWithDependencies { .. } => {
+            AssetEvent::LoadedWithDependencies { id } => {
+                let level_asset = levels.get(*id).expect("Level should exist");
+
+                // Reset level
                 level.score = 0;
 
                 let width = windows.single().width();
@@ -153,6 +165,24 @@ fn on_level_load_sys(
                         MeshMaterial2d(materials.add(ColorMaterial::from_color(ORANGE))),
                     ));
                 }
+
+                // Spawn layers
+                for layer in &level_asset.layers {
+                    cmd.entity(*root).with_child((
+                        Sprite {
+                            image: asset_server.load(layer.image.clone()),
+                            image_mode: if layer.tiled {
+                                SpriteImageMode::Tiled { tile_x: true, tile_y: true, stretch_value: 2. }
+                            } else {
+                                SpriteImageMode::Auto
+                            },
+                            custom_size: Some(Vec2::new(width, height)),
+                            ..default()
+                        },
+                        Transform::from_xyz(0., 0., layer.z),
+                    ));
+                }
+
             },
             AssetEvent::Unused { .. } => {
                 info!("Clearing up level");

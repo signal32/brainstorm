@@ -2,6 +2,7 @@ LevelAsset (
     spawn_probability: 0.001,
     spawn_cooldown: 2.0,
     spawner_qty: 10,
+    spawner_z: 200,
     birds: [
         LevelBird (
             asset: "birds/bluebird.ron",
@@ -27,7 +28,14 @@ LevelAsset (
     players: [
         LevelPlayer (
             asset: "players/boy.ron",
-            initial_position: (0, -290),
+            initial_position: (0, -290, 20),
         )
+    ],
+    layers: [
+        LevelLayer (
+            image: "textures/grass_tile_64.png",
+            tiled: true,
+            z: 10
+        ),
     ]
 )

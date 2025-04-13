@@ -68,7 +68,7 @@ fn setup_player_sys(
                             sprint: KeyCode::ShiftLeft,
                             fire: KeyCode::Space,
                         },
-                        Transform::from_xyz(player.initial_position.x, player.initial_position.y, 0.),
+                        Transform::from_translation(player.initial_position),
                         Collider::Rectangle(Rectangle::new(100., 100.)),
                         ColliderIntersectionMode::None,
                     ));
