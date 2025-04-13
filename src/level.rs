@@ -1,6 +1,9 @@
 use std::path::PathBuf;
 
-use bevy::{color::palettes::css::{GREEN, ORANGE}, prelude::*};
+use bevy::{
+    color::palettes::css::{GREEN, ORANGE},
+    prelude::*
+};
 use serde::Deserialize;
 
 use crate::{
@@ -28,7 +31,9 @@ impl Plugin for LevelPlugin {
                 default_level_path: self.default_level.clone(),
                 ..default()
             })
+            .add_systems(Startup, setup_level_plugin_sys)
             .add_systems(OnEnter(GameState::Game), load_level_sys)
+            .add_systems(OnEnter(GameState::Menu), unload_level_sys)
             .add_systems(FixedUpdate, (on_level_load_sys, despawn_entities));
     }
 }
@@ -77,26 +82,55 @@ fn load_level_sys(
     level.level_handle = asset_server.load(level.default_level_path.clone());
 }
 
+fn unload_level_sys(
+    mut level: ResMut<Level>,
+) {
+    level.level_handle = Handle::default();
+}
+
+fn setup_level_plugin_sys(mut cmd: Commands) {
+    cmd.spawn((LevelRoot, Transform::default()));
+}
+
 #[derive(Component)]
 struct Despawner;
+
+/// Marks the loaded levels root [Entity].
+///
+/// There should only ever be one such entity in the world at any one time.
+/// Using [LevelRootEntity] as a SystemParam in queries can help with this.
+#[derive(Component)]
+pub struct LevelRoot;
+
+/// System Parameter that provides the Level Root Entity.
+///
+/// Entities belonging to the [Level] should be added as children of the [LevelRootEntity].
+/// They will then benefit from automatic cleanup along with the level.
+///
+/// It is assumed that only one [LevelRoot] exists.
+pub type LevelRootEntity<'a> =  Single<'a, Entity, With<LevelRoot>>;
 
 fn on_level_load_sys(
     mut cmd: Commands,
     mut level_asset_evts: EventReader<AssetEvent<LevelAsset>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    mut level: ResMut<Level>,
+    root: LevelRootEntity,
     windows: Query<&Window>,
 ) {
     for evt in level_asset_evts.read() {
         match evt {
-            AssetEvent::LoadedWithDependencies { id } => {
+            AssetEvent::LoadedWithDependencies { .. } => {
+                level.score = 0;
+
                 let width = windows.single().width();
                 let height = windows.single().height();
 
                 // Hit boxes to prevent player leaving play area
                 let play_area_hit_boxes = enclosing_rectangles(width, height);
                 for (rect, tf) in play_area_hit_boxes {
-                    cmd.spawn((
+                    cmd.entity(*root).with_child((
                         Collider::Rectangle(rect),
                         ColliderIntersectionMode::None,
                         ColliderStatic,
@@ -109,7 +143,7 @@ fn on_level_load_sys(
                 // Hit boxes to trigger despairing of entities that have left the play area
                 let despawn_area_hit_boxes = enclosing_rectangles(width * 2., height * 3.);
                 for (rect, tf) in despawn_area_hit_boxes {
-                    cmd.spawn((
+                    cmd.entity(*root).with_child((
                         Despawner,
                         Collider::Rectangle(rect),
                         ColliderIntersectionMode::None,
@@ -120,6 +154,10 @@ fn on_level_load_sys(
                     ));
                 }
             },
+            AssetEvent::Unused { .. } => {
+                info!("Clearing up level");
+                cmd.entity(*root).despawn_descendants();
+            }
             _ => (),
         }
     }

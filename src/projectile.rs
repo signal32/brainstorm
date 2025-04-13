@@ -1,5 +1,8 @@
 use bevy::prelude::*;
-use crate::physics::{Collider, ColliderContactEvent, Velocity};
+use crate::{
+    level::LevelRootEntity,
+    physics::{Collider, Velocity}
+};
 use super::GameState;
 
 pub struct ProjectilePlugin;
@@ -24,15 +27,14 @@ pub struct ProjectileLauncher {
 
 fn launch_projectiles_sys(
     mut cmd: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
     launchers: Query<(&ProjectileLauncher, &Transform)>,
     keys: Res<ButtonInput<KeyCode>>,
     asset_server: Res<AssetServer>,
+    root: LevelRootEntity,
 ) {
     for (launcher, launcher_tf) in launchers.iter() {
         if keys.just_pressed(launcher.launch_key) {
-            cmd.spawn((
+            cmd.entity(*root).with_child((
                 Projectile {},
                 Velocity(200.),
                 Collider::Rectangle(Rectangle::new(100., 10.)),
