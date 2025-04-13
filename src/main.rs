@@ -4,6 +4,7 @@ mod bird;
 mod util;
 mod level;
 mod ui;
+mod player;
 
 use std::path::PathBuf;
 
@@ -12,6 +13,7 @@ use bird::BirdPlugin;
 use clap::{Parser, ValueEnum};
 use level::LevelPlugin;
 use physics::PhysicsPlugin;
+use player::PlayerPlugin;
 use projectile::{ProjectileLauncher, ProjectilePlugin};
 use ui::UiPlugin;
 use util::TransformInterpolationPlugin;
@@ -32,7 +34,10 @@ struct Args {
     level: Option<String>,
 
     #[arg(long)]
-    initial_state: Option<GameState>
+    initial_state: Option<GameState>,
+
+    #[arg(long)]
+    debug_render: Option<bool>,
 }
 
 fn main() {
@@ -56,21 +61,18 @@ fn main() {
                     }),
                     ..default()
                 },),
-            PhysicsPlugin,
+            PhysicsPlugin { debug_render: args.debug_render.unwrap_or_default()},
             ProjectilePlugin,
             BirdPlugin,
             UiPlugin,
             TransformInterpolationPlugin,
+            PlayerPlugin,
             match args.level {
                 Some(level) => LevelPlugin { default_level: PathBuf::from(level) },
                 None => LevelPlugin::default()
             }
     ));
     app.add_systems(Startup, setup_sys);
-    app.add_systems(Update,
-        (player_move_sys)
-        .run_if(in_state(GameState::Game)),
-    );
 
     app.init_state::<GameState>();
     if let Some(state) = args.initial_state {
@@ -89,10 +91,6 @@ pub(crate) enum GameState {
     Splash,
 }
 
-#[derive(Component)]
-struct Player {
-    health: i32
-}
 
 fn setup_sys(
     mut cmd: Commands,
@@ -100,35 +98,15 @@ fn setup_sys(
     mut materials: ResMut<Assets<ColorMaterial>>,
     windows: Query<&Window>
 ) {
-    let window_height = windows.single().height();
-
     cmd.spawn(Camera2d);
 
-    cmd.spawn((
-        Player { health: 100 },
-        ProjectileLauncher {
-            launch_key: KeyCode::Space
-        },
-        Mesh2d(meshes.add(Annulus::new(25.0, 50.0))),
-        MeshMaterial2d(materials.add(Color::WHITE)),
-        Transform::from_xyz(0., - window_height / 2. + 75., 0.),
-    ));
-}
-
-fn player_move_sys(
-    mut players: Query<&mut Transform, With<Player>>,
-    windows: Query<&Window>,
-    keys: Res<ButtonInput<KeyCode>>
-) {
-    for mut player_tf in players.iter_mut() {
-        let width = windows.single().width();
-        let move_distance = if keys.pressed(KeyCode::ShiftLeft) { 25. } else { 10. };
-
-        if keys.pressed(KeyCode::KeyA) {
-            player_tf.translation.x = (player_tf.translation.x -move_distance).max(-width / 2.)
-        }
-        if keys.pressed(KeyCode::KeyD) {
-            player_tf.translation.x = (player_tf.translation.x + move_distance).min(width / 2.)
-        }
-    }
+    // cmd.spawn((
+    //     Player { health: 100 },
+    //     ProjectileLauncher {
+    //         launch_key: KeyCode::Space
+    //     },
+    //     Mesh2d(meshes.add(Annulus::new(25.0, 50.0))),
+    //     MeshMaterial2d(materials.add(Color::WHITE)),
+    //     Transform::from_xyz(0., - window_height / 2. + 75., 0.),
+    // ));
 }

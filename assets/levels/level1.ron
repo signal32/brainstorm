@@ -24,4 +24,10 @@ LevelAsset (
             spawn_probability: 2.0
         ),
     ],
+    players: [
+        LevelPlayer (
+            asset: "players/boy.ron",
+            initial_position: (0, -290),
+        )
+    ]
 )
