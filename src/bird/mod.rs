@@ -24,6 +24,7 @@ impl Plugin for BirdPlugin {
         app.add_systems(OnEnter(GameState::Game), setup_sys);
         app.add_systems(FixedUpdate, setup_spawner_sys.run_if(in_state(GameState::Game)));
         app.add_systems(FixedUpdate, (
+            animate_birds_sys,
             bird_spawn_sys,
             bird_hit_sys,
             update_bird_tweet_sys,
