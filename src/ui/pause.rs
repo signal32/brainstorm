@@ -1,5 +1,5 @@
-use bevy::prelude::*;
 use super::*;
+use bevy::prelude::*;
 
 pub struct PausePlugin;
 
@@ -31,58 +31,67 @@ pub(crate) enum PauseState {
     PauseMenu,
     Settings,
     #[default]
-    Disabled
+    Disabled,
 }
 
-fn pause_setup_sys(
-    mut pause_state: ResMut<NextState<PauseState>>
-) {
+fn pause_setup_sys(mut pause_state: ResMut<NextState<PauseState>>) {
     pause_state.set(PauseState::PauseMenu);
 }
 
-fn pause_menu_setup_sys(
-    mut cmd: Commands,
-    asset_server: Res<AssetServer>,
-) {
+fn pause_menu_setup_sys(mut cmd: Commands, asset_server: Res<AssetServer>) {
     let container = MenuContainerNode::spawn(&mut cmd);
     let title_text = (
         Text::new("Game Paused"),
         MenuFont::title_font(&asset_server),
-        TextColor(MENU_TEXT_COLOR)
+        TextColor(MENU_TEXT_COLOR),
     );
     cmd.entity(container)
-    .insert((
-        OnMenuScreen,
-        OnPauseMenuScreen
-    ))
-    .with_children(|parent|{
-        parent.spawn(title_text);
-    })
-    .with_children( |mut parent| {
-        ButtonNode::spawn(&mut parent, &asset_server, ButtonAction::Pause(PauseButtonAction::Resume), "Resume".to_string());
-    })
-    .with_children( |mut parent| {
-        ButtonNode::spawn(&mut parent, &asset_server, ButtonAction::Settings, "Settings".to_string());
-    })
-    .with_children( |mut parent| {
-        ButtonNode::spawn(&mut parent, &asset_server, ButtonAction::Pause(PauseButtonAction::QuitToTitle), "Quit to Title".to_string());
-    })
-    .with_children( |mut parent| {
-        ButtonNode::spawn(&mut parent, &asset_server, ButtonAction::Quit, "Quit".to_string());
-    });
+        .insert((OnMenuScreen, OnPauseMenuScreen))
+        .with_children(|parent| {
+            parent.spawn(title_text);
+        })
+        .with_children(|mut parent| {
+            ButtonNode::spawn(
+                &mut parent,
+                &asset_server,
+                ButtonAction::Pause(PauseButtonAction::Resume),
+                "Resume".to_string(),
+            );
+        })
+        .with_children(|mut parent| {
+            ButtonNode::spawn(
+                &mut parent,
+                &asset_server,
+                ButtonAction::Settings,
+                "Settings".to_string(),
+            );
+        })
+        .with_children(|mut parent| {
+            ButtonNode::spawn(
+                &mut parent,
+                &asset_server,
+                ButtonAction::Pause(PauseButtonAction::QuitToTitle),
+                "Quit to Title".to_string(),
+            );
+        })
+        .with_children(|mut parent| {
+            ButtonNode::spawn(
+                &mut parent,
+                &asset_server,
+                ButtonAction::Quit,
+                "Quit".to_string(),
+            );
+        });
 }
 
 /// Defines the actions that should occur on [Button] presses
 /// Allows quit, settings, back to pause menu, restart game, and resume options
 /// Add this system to allow pause menu button actions to occur
-fn pause_button_action_sys (
+fn pause_button_action_sys(
     mut app_exit_events: EventWriter<AppExit>,
     mut game_state: ResMut<NextState<GameState>>,
     mut pause_state: ResMut<NextState<PauseState>>,
-    interactions: Query<
-        (&Interaction, &ButtonAction),
-        (Changed<Interaction>, With<Button>)
-    >,
+    interactions: Query<(&Interaction, &ButtonAction), (Changed<Interaction>, With<Button>)>,
 ) {
     for (interaction, button_action) in &interactions {
         if *interaction == Interaction::Pressed {
@@ -109,7 +118,9 @@ fn pause_button_action_sys (
                     debug!("returning to pause menu. pause state: pausemenu")
                 }
                 _ => {
-                    panic!("You've somehow done something that isn't a pause thing, in the pause menu.")
+                    panic!(
+                        "You've somehow done something that isn't a pause thing, in the pause menu."
+                    )
                 }
             }
         }

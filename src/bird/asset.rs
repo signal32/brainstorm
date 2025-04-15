@@ -16,7 +16,6 @@ pub(super) fn load_bird_assets_sys(
     assets: Res<Assets<BirdAsset>>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
 ) {
-
     for EntityAssetReadyEvent((entities, asset_id)) in asset_events.read() {
         let asset = assets.get(*asset_id).expect("asset does not exist");
         for entity in entities {
@@ -28,15 +27,13 @@ pub(super) fn load_bird_assets_sys(
             // columns x rows in the sprite sheet
             let dimensions = asset.atlas_dimensions.unwrap_or(UVec2 { x: 1, y: 1 });
             // layout of the sprite sheet
-            let texture_atlas_layout = texture_atlas_layouts.add(
-                TextureAtlasLayout::from_grid(
-                    UVec2 {x:64, y:32}, // width x height of each sprite in sheet
-                    dimensions[0], // columns
-                    dimensions[1], // rows
-                    None, // padding
-                    None // offset
-                )
-            );
+            let texture_atlas_layout = texture_atlas_layouts.add(TextureAtlasLayout::from_grid(
+                UVec2 { x: 64, y: 32 }, // width x height of each sprite in sheet
+                dimensions[0],          // columns
+                dimensions[1],          // rows
+                None,                   // padding
+                None,                   // offset
+            ));
 
             let last = usize::try_from((dimensions[0] * dimensions[1]) - 1).unwrap();
             let animation_indices = AnimationIndices { first: 0, last };
@@ -45,8 +42,8 @@ pub(super) fn load_bird_assets_sys(
                 asset_server.load(asset.sprite.clone()),
                 TextureAtlas {
                     layout: texture_atlas_layout,
-                    index: animation_indices.first
-                }
+                    index: animation_indices.first,
+                },
             );
             sprite.custom_size = Some(asset.size);
             sprite.flip_y = true; // birds render upside down if disabled
@@ -74,7 +71,6 @@ pub(super) fn load_bird_assets_sys(
         }
     }
 }
-
 
 #[derive(Asset, TypePath, Debug, Deserialize, Default)]
 pub struct BirdAsset {
