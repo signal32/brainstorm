@@ -1,47 +1,11 @@
 use std::path::PathBuf;
 use bevy::prelude::*;
 use serde::Deserialize;
-use crate::{physics::{Collider, Velocity}, util::{EntityAssetReadyEvent, TargetTransform}};
+use crate::{
+    physics::{Collider, Velocity}, 
+    util::{EntityAssetReadyEvent, TargetTransform, AnimationIndices, AnimationTimer}
+};
 use super::{Bird, BirdHungerBar};
-
-#[derive(Component)]
-pub(super) struct AnimationIndices {
-    first: usize,
-    last: usize,
-}
-
-#[derive(Component, Deref, DerefMut)]
-pub(super) struct AnimationTimer(Timer);
-
-pub(super) fn animate_birds_sys(
-    time: Res<Time>,
-    mut query: Query<(
-        &AnimationIndices,
-        &mut AnimationTimer,
-        &mut Sprite
-    )>,
-) {
-    for (indices, mut timer, mut sprite) in &mut query{
-        timer.tick(time.delta());
-
-        if timer.just_finished() {
-            if let Some(atlas) = &mut sprite.texture_atlas {
-                // static image
-                if indices.first == indices.last {
-                    atlas.index = 1;
-                    continue;
-                }
-    
-                // standard animation loop
-                if atlas.index >= indices.last {
-                    atlas.index = indices.first;
-                } else {
-                    atlas.index += 1;
-                }
-            }
-        }
-    }
-}
 
 /// Loads asset file and spawns remaining [Bird] components
 /// on entities with a [BirdAssetHandle].
@@ -60,6 +24,8 @@ pub(super) fn load_bird_assets_sys(
             target_tf.duration_factor = asset.velocity * 0.015;
             target_tf.lerp_transform = false; // conflicts with movement if enabled
             target_tf.finish();
+
+            // columns x rows in the sprite sheet
             let dimensions = asset.atlas_dimensions.unwrap_or(UVec2 { x: 1, y: 1 });
             // layout of the sprite sheet
             let texture_atlas_layout = texture_atlas_layouts.add(
@@ -83,7 +49,7 @@ pub(super) fn load_bird_assets_sys(
                 }
             );
             sprite.custom_size = Some(asset.size);
-            sprite.flip_y = true; // upside down otherwise
+            sprite.flip_y = true; // birds render upside down if disabled
 
             cmd.entity(*entity)
                 .clear_children()

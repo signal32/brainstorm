@@ -3,17 +3,12 @@ pub mod pause;
 pub mod main_menu;
 
 use bevy::prelude::*;
-use std::{path::PathBuf, sync::LazyLock};
+use std::{ path::PathBuf, sync::LazyLock };
 use super::GameState;
-use main_menu::{
-    MenuState,
-    MenuPlugin
-};
-use pause::{
-    PauseState,
-    PausePlugin
-};
-use splash::SplashPlugin;
+
+use main_menu::*;
+use pause::*;
+use splash::*;
 
 // set some color constants -- eventually this can maybe be configurable?
 static BUTTON_DEFAULT_COLOR: LazyLock<Color> = LazyLock::new(|| Color::srgb_u8(49, 104, 65));
