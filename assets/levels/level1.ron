@@ -28,7 +28,7 @@ LevelAsset (
     players: [
         LevelPlayer (
             asset: "players/boy.ron",
-            initial_position: (0, -290, 20),
+            initial_position: (-100, 0, 20),
         )
     ],
     layers: [
@@ -37,5 +37,19 @@ LevelAsset (
             tiled: true,
             z: 10
         ),
+    ],
+    scenery: [
+        LevelScenery (
+            image: "sprites/magpie.png",
+            size: (300,300),
+            translation: (-100,0,15),
+            collision: false,
+        ),
+        LevelScenery (
+            image: "sprites/seeds.png",
+            size: (40,40),
+            translation: (400,350,15),
+            collision: true,
+        )
     ]
 )
