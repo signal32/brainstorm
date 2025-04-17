@@ -18,7 +18,9 @@ pub struct LevelPlugin {
 
 impl Default for LevelPlugin {
     fn default() -> Self {
-        Self { default_level: PathBuf::from("levels").join("level1.ron") }
+        Self {
+            default_level: PathBuf::from("levels").join("level1.ron"),
+        }
     }
 }
 
@@ -26,11 +28,14 @@ impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
         app.init_asset::<LevelAsset>()
             .init_asset_loader::<RonAssetLoader<LevelAsset>>()
-            .insert_resource(Level { default_level_path: self.default_level.clone(), ..default() })
+            .insert_resource(Level {
+                default_level_path: self.default_level.clone(),
+                ..default()
+            })
             .add_event::<LevelEvent>()
             .add_systems(Startup, setup_level_plugin_sys)
             .add_systems(OnEnter(GameState::Game), load_level_sys)
-            // .add_systems(OnEnter(GameState::Menu), unload_level_sys)
+            .add_systems(OnEnter(GameState::Menu), unload_level_sys)
             .add_systems(FixedUpdate, (on_level_load_sys, despawn_entities));
     }
 }
@@ -99,7 +104,11 @@ fn unload_level_sys(mut level: ResMut<Level>) {
 }
 
 fn setup_level_plugin_sys(mut cmd: Commands) {
-    cmd.spawn((LevelRoot, Transform::default(), InheritedVisibility::default()));
+    cmd.spawn((
+        LevelRoot,
+        Transform::default(),
+        InheritedVisibility::default(),
+    ));
 }
 
 #[derive(Component)]
@@ -139,6 +148,7 @@ fn on_level_load_sys(
                 let mut root_cmds = cmd.entity(*root);
 
                 // Make sure any old level entities have been removed
+                info!("hii");
                 root_cmds.try_despawn_descendants();
 
                 // Reset level
@@ -185,8 +195,7 @@ fn on_level_load_sys(
                                     tile_y: true,
                                     stretch_value: 2.,
                                 }
-                            }
-                            else {
+                            } else {
                                 SpriteImageMode::Auto
                             },
                             custom_size: Some(Vec2::new(width, height)),
@@ -244,8 +253,14 @@ fn enclosing_rectangles(width: f32, height: f32) -> Vec<(Rectangle, Vec3)> {
     vec![
         (Rectangle::new(width, bb_size), Vec3::new(0., h_height, 0.)),
         (Rectangle::new(width, bb_size), Vec3::new(0., -h_height, 0.)),
-        (Rectangle::new(bb_size, height + bb_size * 2.), Vec3::new(h_width, 0., 0.)),
-        (Rectangle::new(bb_size, height + bb_size * 2.), Vec3::new(-h_width, 0., 0.)),
+        (
+            Rectangle::new(bb_size, height + bb_size * 2.),
+            Vec3::new(h_width, 0., 0.),
+        ),
+        (
+            Rectangle::new(bb_size, height + bb_size * 2.),
+            Vec3::new(-h_width, 0., 0.),
+        ),
     ]
 }
 
