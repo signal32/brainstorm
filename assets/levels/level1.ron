@@ -33,7 +33,8 @@ LevelAsset (
     ],
     layers: [
         LevelLayer (
-            image: "textures/grass_tile_64.png",
+            image: "textures/grass_tile_bw_64.png",
+            blend: true,
             tiled: true,
             z: 10
         ),

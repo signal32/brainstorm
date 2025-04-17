@@ -2,7 +2,9 @@ use std::path::PathBuf;
 
 use bevy::{
     color::palettes::css::{GREEN, ORANGE},
+    image::{ImageAddressMode, ImageLoaderSettings, ImageSampler, ImageSamplerDescriptor},
     prelude::*,
+    sprite::AlphaMode2d,
 };
 use serde::Deserialize;
 
@@ -83,6 +85,7 @@ pub struct LevelPlayer {
 pub struct LevelLayer {
     image: PathBuf,
     tiled: bool,
+    blend: bool,
     z: f32,
 }
 
@@ -185,21 +188,39 @@ fn on_level_load_sys(
 
                 // Spawn layers
                 for layer in &level_asset.layers {
-                    root_cmds.with_child((
-                        Sprite {
-                            image: asset_server.load(layer.image.clone()),
-                            image_mode: if layer.tiled {
-                                SpriteImageMode::Tiled {
-                                    tile_x: true,
-                                    tile_y: true,
-                                    stretch_value: 2.,
+                    let image_handle = match layer.tiled {
+                        true => {
+                            asset_server.load_with_settings(layer.image.clone(), |s: &mut _| {
+                                *s = ImageLoaderSettings {
+                                    sampler: ImageSampler::Descriptor(ImageSamplerDescriptor {
+                                        // rewriting mode to repeat image,
+                                        address_mode_u: ImageAddressMode::Repeat,
+                                        address_mode_v: ImageAddressMode::Repeat,
+                                        ..default()
+                                    }),
+                                    ..default()
                                 }
+                            })
+                        }
+                        false => asset_server.load(layer.image.clone()),
+                    };
+
+                    root_cmds.with_child((
+                        Mesh2d(meshes.add(Rectangle::new(width, height))),
+                        MeshMaterial2d(materials.add(ColorMaterial {
+                            texture: Some(image_handle),
+                            alpha_mode: if (layer.blend) {
+                                // If blend is not okay we may need a custom shader to multiply
+                                // https://www.reddit.com/r/bevy/comments/132zyl6/additive_blending_of_sprites_in_2d/
+                                AlphaMode2d::Blend
                             } else {
-                                SpriteImageMode::Auto
+                                AlphaMode2d::Opaque
                             },
-                            custom_size: Some(Vec2::new(width, height)),
+                            // Need this field for proper scaling
+                            // Waiting for Bevy 0.16 which is nearly ready!
+                            // uv_transform: Affine2::from_scale(Vec2::new(2., 3.)),
                             ..default()
-                        },
+                        })),
                         Transform::from_xyz(0., 0., layer.z),
                     ));
                 }
