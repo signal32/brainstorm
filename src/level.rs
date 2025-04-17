@@ -148,7 +148,6 @@ fn on_level_load_sys(
                 let mut root_cmds = cmd.entity(*root);
 
                 // Make sure any old level entities have been removed
-                info!("hii");
                 root_cmds.try_despawn_descendants();
 
                 // Reset level
@@ -230,7 +229,7 @@ fn on_level_load_sys(
                 level_evtw.send(LevelEvent::Loaded { id: *id });
             }
             AssetEvent::Unused { id } => {
-                info!("Clearing up level");
+                debug!("Clearing up level");
                 level_evtw.send(LevelEvent::Unloaded { id: *id });
                 cmd.entity(*root).try_despawn_descendants();
             }
