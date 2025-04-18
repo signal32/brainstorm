@@ -24,6 +24,11 @@ pub(super) fn load_bird_assets_sys(
             target_tf.lerp_transform = false; // conflicts with movement if enabled
             target_tf.finish();
 
+            // FIXME: if atlas_dimensions are not given, and it gets a sprite sheet with multiple sprites
+            // then it just kinda,, displays all of them squished into one sprite
+            // instead of the intended behaviour which is to just take the first sprite
+            // of the sheet and display that static image
+
             // columns x rows in the sprite sheet
             let dimensions = asset.atlas_dimensions.unwrap_or(UVec2 { x: 1, y: 1 });
             // layout of the sprite sheet
