@@ -1,4 +1,6 @@
 use bevy::prelude::*;
+use crate::level::Level;
+
 use super::*;
 pub struct GameOverPlugin;
 
@@ -11,6 +13,7 @@ impl Plugin for GameOverPlugin {
                 game_over_button_action_sys
             ).run_if(in_state(GameState::GameOver))
         )
+        .add_systems(Update, temp_listener)
         .add_systems(OnExit(GameState::GameOver), despawn_entities::<OnGameOverScreen>);
     }
 }
@@ -20,11 +23,17 @@ struct OnGameOverScreen;
 
 fn game_over_setup_sys(
     mut cmd: Commands,
+    level: ResMut<Level>,
     asset_server: Res<AssetServer>
 ) {
     let container = MenuContainerNode::spawn(&mut cmd);
     let game_over_text = (
         Text::new("Game Over"),
+        MenuFont::title_font(&asset_server),
+        TextColor(MENU_TEXT_COLOR),
+    );
+    let score_text = (
+        Text::new(format!("Score: {}", level.score).to_string()),
         MenuFont::sub_title_font(&asset_server),
         TextColor(MENU_TEXT_COLOR),
     );
@@ -32,6 +41,9 @@ fn game_over_setup_sys(
         .insert(OnGameOverScreen)
         .with_children(|parent| {
             parent.spawn(game_over_text);
+        })
+        .with_children(|parent| {
+            parent.spawn(score_text);
         })
         .with_children(|mut parent| {
             ButtonNode::spawn(
@@ -71,5 +83,14 @@ fn game_over_button_action_sys(
                 }
             }
         }
+    }
+}
+
+fn temp_listener(
+    keys: Res<ButtonInput<KeyCode>>,
+    mut next_game_state: ResMut<NextState<GameState>>,
+){
+    if keys.just_pressed(KeyCode::KeyG) {
+        next_game_state.set(GameState::GameOver);
     }
 }
