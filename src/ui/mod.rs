@@ -1,6 +1,7 @@
 pub mod main_menu;
 pub mod pause;
 pub mod splash;
+pub mod game_over;
 
 use super::GameState;
 use bevy::prelude::*;
@@ -9,6 +10,7 @@ use std::{path::PathBuf, sync::LazyLock};
 use main_menu::*;
 use pause::*;
 use splash::*;
+use game_over::*;
 
 // set some color constants -- eventually this can maybe be configurable?
 static BUTTON_DEFAULT_COLOR: LazyLock<Color> = LazyLock::new(|| Color::srgb_u8(49, 104, 65));
@@ -23,7 +25,7 @@ pub struct UiPlugin;
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((MenuPlugin, PausePlugin, SplashPlugin));
+        app.add_plugins((MenuPlugin, PausePlugin, SplashPlugin, GameOverPlugin));
         app.add_systems(
             Update,
             (pause_menu_listener_sys).run_if(in_state(GameState::Game)),
@@ -54,6 +56,7 @@ pub(crate) struct OnSettingsMenuScreen;
 pub(crate) enum ButtonAction {
     Menu(MenuButtonAction),
     Pause(PauseButtonAction),
+    GameOver(GameOverButtonAction),
     Quit,
     Settings,
 }
@@ -71,6 +74,13 @@ pub(crate) enum PauseButtonAction {
     BackToMenu,
     QuitToTitle,
     Resume,
+}
+
+// Enum of all actions a [Button] on the game over screen should be able to perform
+#[derive(Debug)]
+pub(crate) enum GameOverButtonAction {
+    ReturnToTitle,
+    TryAgain
 }
 
 /// ButtonNode! Standardise your buttons with this one cool trick!
