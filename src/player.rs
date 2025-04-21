@@ -25,8 +25,8 @@ impl Plugin for PlayerPlugin {
 }
 
 #[derive(Debug, Component)]
-struct Player {
-    health: i32,
+pub struct Player {
+    pub health: i32,
     speed: f32,
 }
 

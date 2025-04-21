@@ -1,35 +1,46 @@
 pub mod asset;
+pub mod dropping;
 pub mod spawner;
 
 use std::path::PathBuf;
 
 use asset::*;
-use spawner::*;
 use bevy::prelude::*;
 use rand::Rng;
+use spawner::*;
 
 use crate::{
+    GameState,
     level::Level,
     physics::{ColliderContactEvent, Velocity},
     projectile::Projectile,
     util::{AssetManagerPlugin, TargetTransform},
-    GameState
 };
 
 pub struct BirdPlugin;
 
 impl Plugin for BirdPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(AssetManagerPlugin::<BirdAsset>::default());
+        app.add_plugins((
+            AssetManagerPlugin::<BirdAsset>::default(),
+            dropping::BirdDroppingPlugin,
+        ));
         app.add_systems(OnEnter(GameState::Game), setup_sys);
-        app.add_systems(FixedUpdate, setup_spawner_sys.run_if(in_state(GameState::Game)));
-        app.add_systems(FixedUpdate, (
-            bird_spawn_sys,
-            bird_hit_sys,
-            update_bird_tweet_sys,
-            setup_bird_hunger_bar_sys,
-            update_bird_hunger_bar_sys,
-        ).run_if(in_state(GameState::Game)));
+        app.add_systems(
+            FixedUpdate,
+            setup_spawner_sys.run_if(in_state(GameState::Game)),
+        );
+        app.add_systems(
+            FixedUpdate,
+            (
+                bird_spawn_sys,
+                bird_hit_sys,
+                update_bird_tweet_sys,
+                setup_bird_hunger_bar_sys,
+                update_bird_hunger_bar_sys,
+            )
+                .run_if(in_state(GameState::Game)),
+        );
         app.add_systems(FixedPostUpdate, load_bird_assets_sys);
     }
 }
@@ -64,20 +75,31 @@ fn bird_hit_sys(
     let mut rng = rand::rng();
     for ev in contact_ev.read() {
         // collision must be between a bird...
-        let bird = if let Ok(b) = birds.get_mut(ev.a) { Some(b) }
-        else if let Ok(b) =  birds.get_mut(ev.b) { Some(b) }
-        else { None };
+        let bird = if let Ok(b) = birds.get_mut(ev.a) {
+            Some(b)
+        } else if let Ok(b) = birds.get_mut(ev.b) {
+            Some(b)
+        } else {
+            None
+        };
         // ...and a projectile
-        let projectile = if let Ok(b) = projectiles.get_mut(ev.a) { Some(b) }
-        else if let Ok(b) =  projectiles.get_mut(ev.b) { Some(b) }
-        else { None };
+        let projectile = if let Ok(b) = projectiles.get_mut(ev.a) {
+            Some(b)
+        } else if let Ok(b) = projectiles.get_mut(ev.b) {
+            Some(b)
+        } else {
+            None
+        };
 
         // if we have both then we're good :D
         if let Some((
-            (mut velocity, tf,  mut target_tf, mut bird),
-            (projectile_entity, _) // the projectile
-        )) = bird.zip(projectile) {
-            if bird.hunger == 0 { continue; }
+            (mut velocity, tf, mut target_tf, mut bird),
+            (projectile_entity, _), // the projectile
+        )) = bird.zip(projectile)
+        {
+            if bird.hunger == 0 {
+                continue;
+            }
             bird.hunger = bird.hunger.saturating_sub(1);
             level.score += bird.on_feed_points;
             cmd.entity(projectile_entity).despawn();
@@ -107,12 +129,16 @@ fn update_bird_tweet_sys(
 fn update_bird_hunger_bar_sys(
     changed_birds: Query<(&Bird, &Children), Changed<Bird>>,
     mut cmd: Commands,
-    mut bird_hunger_bars: Query<(Entity, &mut Mesh2d, &mut MeshMaterial2d<ColorMaterial>), With<BirdHungerBar>>,
+    mut bird_hunger_bars: Query<
+        (Entity, &mut Mesh2d, &mut MeshMaterial2d<ColorMaterial>),
+        With<BirdHungerBar>,
+    >,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     for (bird, children) in changed_birds.iter() {
-        let percent_full = (bird.initial_hunger - bird.hunger) as f32 / (bird.initial_hunger as f32);
+        let percent_full =
+            (bird.initial_hunger - bird.hunger) as f32 / (bird.initial_hunger as f32);
 
         for &child in children.iter() {
             if let Ok((entity, mut mesh, mut material)) = bird_hunger_bars.get_mut(child) {
@@ -151,10 +177,7 @@ fn setup_bird_hunger_bar_sys(
 #[derive(Component)]
 struct BirdTweetText;
 
-fn setup_sys(
-    mut cmd: Commands,
-    asset_server: Res<AssetServer>,
-) {
+fn setup_sys(mut cmd: Commands, asset_server: Res<AssetServer>) {
     // This is a bit of a hack to make sure only 1 BirdTweetText ever exists.
     // Otherwise another gets added each time we enter game state which causes a panic elsewhere.
     once!(cmd.spawn((
