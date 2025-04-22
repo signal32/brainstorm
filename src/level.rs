@@ -34,6 +34,7 @@ impl Plugin for LevelPlugin {
             .add_systems(Startup, setup_level_plugin_sys)
             .add_systems(OnEnter(GameState::Game), load_level_sys)
             .add_systems(OnEnter(GameState::Menu), unload_level_sys)
+            .add_systems(OnEnter(GameState::GameOver), unload_level_sys)
             .add_systems(FixedUpdate, (on_level_load_sys, despawn_entities));
     }
 }
