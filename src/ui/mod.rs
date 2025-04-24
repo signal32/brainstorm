@@ -1,19 +1,14 @@
-pub mod splash;
-pub mod pause;
 pub mod main_menu;
+pub mod pause;
+pub mod splash;
 
+use super::GameState;
 use bevy::prelude::*;
 use std::{path::PathBuf, sync::LazyLock};
-use super::GameState;
-use main_menu::{
-    MenuState,
-    MenuPlugin
-};
-use pause::{
-    PauseState,
-    PausePlugin
-};
-use splash::SplashPlugin;
+
+use main_menu::*;
+use pause::*;
+use splash::*;
 
 // set some color constants -- eventually this can maybe be configurable?
 static BUTTON_DEFAULT_COLOR: LazyLock<Color> = LazyLock::new(|| Color::srgb_u8(49, 104, 65));
@@ -28,14 +23,10 @@ pub struct UiPlugin;
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((
-            MenuPlugin,
-            PausePlugin,
-            SplashPlugin
-        ));
-        app.add_systems(Update, 
-            (pause_menu_listener_sys)
-            .run_if(in_state(GameState::Game))
+        app.add_plugins((MenuPlugin, PausePlugin, SplashPlugin));
+        app.add_systems(
+            Update,
+            (pause_menu_listener_sys).run_if(in_state(GameState::Game)),
         );
     }
 }
@@ -48,7 +39,7 @@ impl Plugin for UiPlugin {
 /// [`OnMenuScreen`] entities and switch to [`GameState::Gam`e], which would be difficult to do
 /// if we used only [`OnMainMenuScreen`] and [`OnSettingsMenuScreen`]
 
-#[derive (Component)]
+#[derive(Component)]
 pub struct OnMenuScreen;
 
 /// Tag Entities with this if they are visible on a settings substate e.g. [MenuState::Settings]
@@ -65,13 +56,13 @@ pub(crate) enum ButtonAction {
     Pause(PauseButtonAction),
     Quit,
     Settings,
-} 
+}
 
 /// Enum of all actions a menu [Button] should be able to perform
 #[derive(Debug)]
 pub(crate) enum MenuButtonAction {
     BackToMenu,
-    NewGame
+    NewGame,
 }
 
 /// Enum of all actions a [Button] on the pause menu should be able to perform
@@ -79,18 +70,18 @@ pub(crate) enum MenuButtonAction {
 pub(crate) enum PauseButtonAction {
     BackToMenu,
     QuitToTitle,
-    Resume
+    Resume,
 }
 
 /// ButtonNode! Standardise your buttons with this one cool trick!
-/// 
+///
 /// # Usage
 /// ```
 /// let new_button = ButtonNode::spawn(parent, asset_server, ButtonAction::Action, "Button Text");
 /// ```
 /// assuming parent is &mut [`ChildBuilder`], and has already been defined
 /// So [`ButtonNode`]s are always children of some other [`Entity`]
-/// 
+///
 /// # Returns
 /// [`Entity`] ID of the newly spawned button.
 pub struct ButtonNode;
@@ -102,26 +93,28 @@ impl ButtonNode {
         button_action: ButtonAction,
         button_text: String,
     ) -> Entity {
-        parent.spawn((
-            Node {
-                width: Val::Px(500.0),
-                height: Val::Px(65.0),
-                margin: UiRect::all(Val::Px(20.0)),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                ..default()
-            },
-            Button,
-            BackgroundColor(*BUTTON_DEFAULT_COLOR),
-            button_action,
-        )).with_children(| parent| {
-            parent.spawn((
-                Text::new(button_text),
-                MenuFont::button_font(asset_server),
-                TextColor(DEFAULT_TEXT_COLOR)
-            ));
-        })
-        .id()
+        parent
+            .spawn((
+                Node {
+                    width: Val::Px(500.0),
+                    height: Val::Px(65.0),
+                    margin: UiRect::all(Val::Px(20.0)),
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
+                    ..default()
+                },
+                Button,
+                BackgroundColor(*BUTTON_DEFAULT_COLOR),
+                button_action,
+            ))
+            .with_children(|parent| {
+                parent.spawn((
+                    Text::new(button_text),
+                    MenuFont::button_font(asset_server),
+                    TextColor(DEFAULT_TEXT_COLOR),
+                ));
+            })
+            .id()
     }
 }
 
@@ -134,9 +127,7 @@ impl ButtonNode {
 pub struct MenuContainerNode;
 
 impl MenuContainerNode {
-    pub fn spawn(
-        cmd: &mut Commands
-    ) -> Entity {
+    pub fn spawn(cmd: &mut Commands) -> Entity {
         cmd.spawn((
             Node {
                 width: Val::Percent(100.0),
@@ -219,7 +210,7 @@ pub fn pause_menu_listener_sys(
     pause_state: Res<State<PauseState>>,
     mut next_game_state: ResMut<NextState<GameState>>,
     mut next_menu_state: ResMut<NextState<MenuState>>,
-    mut next_pause_state: ResMut<NextState<PauseState>>
+    mut next_pause_state: ResMut<NextState<PauseState>>,
 ) {
     if keys.just_pressed(KeyCode::Escape) {
         match **game_state {
@@ -227,36 +218,32 @@ pub fn pause_menu_listener_sys(
                 next_game_state.set(GameState::Pause);
                 debug!("game state changed to paused!");
             }
-            GameState::Menu => {
-                match **menu_state {
-                    MenuState::MainMenu => {
-                        debug!("Nothing should happen by pressing Esc here");
-                    }
-                    MenuState::Settings => {
-                        next_menu_state.set(MenuState::MainMenu);
-                        debug!("menu state is now main menu");
-                    }
-                    _ => {
-                        panic!("HOW DID WE GET HERE???");
-                    }
+            GameState::Menu => match **menu_state {
+                MenuState::MainMenu => {
+                    debug!("Nothing should happen by pressing Esc here");
                 }
-            }
-            GameState::Pause => {
-                match **pause_state {
-                    PauseState::PauseMenu => {
-                        next_pause_state.set(PauseState::Disabled);
-                        next_game_state.set(GameState::Game);
-                        debug!("pause menu: disabled, and game state: game");
-                    }
-                    PauseState::Settings => {
-                        next_pause_state.set(PauseState::PauseMenu);
-                        debug!("pause state: pause menu");
-                    }
-                    _ => {
-                        panic!("HOW DID WE GET HERE???");
-                    }
+                MenuState::Settings => {
+                    next_menu_state.set(MenuState::MainMenu);
+                    debug!("menu state is now main menu");
                 }
-            }
+                _ => {
+                    panic!("HOW DID WE GET HERE???");
+                }
+            },
+            GameState::Pause => match **pause_state {
+                PauseState::PauseMenu => {
+                    next_pause_state.set(PauseState::Disabled);
+                    next_game_state.set(GameState::Game);
+                    debug!("pause menu: disabled, and game state: game");
+                }
+                PauseState::Settings => {
+                    next_pause_state.set(PauseState::PauseMenu);
+                    debug!("pause state: pause menu");
+                }
+                _ => {
+                    panic!("HOW DID WE GET HERE???");
+                }
+            },
             GameState::Splash => {
                 // do nothing lol
                 debug!("HAH silly, u can't Esc the splash screen, just wait.");
@@ -297,12 +284,9 @@ pub(crate) fn settings_menu_setup_sys(
         }
     }
     let container = MenuContainerNode::spawn(&mut cmd);
-    cmd.entity(container).
-    insert((
-        OnMenuScreen,
-        OnSettingsMenuScreen
-    ))
-    .with_children( |parent| {
+    cmd.entity(container)
+        .insert((OnMenuScreen, OnSettingsMenuScreen))
+        .with_children(|parent| {
             parent.spawn(sub_title_text);
         })
         .with_children(|mut parent| {

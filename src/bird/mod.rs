@@ -14,25 +14,20 @@ use crate::{
     level::Level,
     physics::{ColliderContactEvent, Velocity},
     projectile::Projectile,
-    util::{AssetManagerPlugin, TargetTransform},
+    util::{AssetManagerPlugin, TargetTransform, animate_sys},
 };
 
 pub struct BirdPlugin;
 
 impl Plugin for BirdPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((
-            AssetManagerPlugin::<BirdAsset>::default(),
-            dropping::BirdDroppingPlugin,
-        ));
+        app.add_plugins((AssetManagerPlugin::<BirdAsset>::default(), dropping::BirdDroppingPlugin));
         app.add_systems(OnEnter(GameState::Game), setup_sys);
-        app.add_systems(
-            FixedUpdate,
-            setup_spawner_sys.run_if(in_state(GameState::Game)),
-        );
+        app.add_systems(FixedUpdate, setup_spawner_sys.run_if(in_state(GameState::Game)));
         app.add_systems(
             FixedUpdate,
             (
+                animate_sys,
                 bird_spawn_sys,
                 bird_hit_sys,
                 update_bird_tweet_sys,
@@ -77,17 +72,21 @@ fn bird_hit_sys(
         // collision must be between a bird...
         let bird = if let Ok(b) = birds.get_mut(ev.a) {
             Some(b)
-        } else if let Ok(b) = birds.get_mut(ev.b) {
+        }
+        else if let Ok(b) = birds.get_mut(ev.b) {
             Some(b)
-        } else {
+        }
+        else {
             None
         };
         // ...and a projectile
         let projectile = if let Ok(b) = projectiles.get_mut(ev.a) {
             Some(b)
-        } else if let Ok(b) = projectiles.get_mut(ev.b) {
+        }
+        else if let Ok(b) = projectiles.get_mut(ev.b) {
             Some(b)
-        } else {
+        }
+        else {
             None
         };
 
