@@ -5,4 +5,14 @@ BirdAsset (
     sprite: "sprites/blue_bird.png",
     velocity: 80.0,
     on_feed_points: 10,
+    droppings: Some([
+        (
+            asset: "birds/droppings/seeds.ron",
+            probability: 1,
+        ),
+        (
+            asset: "birds/droppings/bird.ron",
+            probability: 1,
+        )
+    ])
 )

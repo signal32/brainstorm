@@ -1,8 +1,13 @@
 use std::path::PathBuf;
+
 use bevy::prelude::*;
 use serde::Deserialize;
-use crate::{physics::{Collider, Velocity}, util::{EntityAssetReadyEvent, TargetTransform}};
+
 use super::{Bird, BirdHungerBar};
+use crate::{
+    physics::{Collider, Velocity},
+    util::{EntityAssetReadyEvent, TargetTransform},
+};
 
 /// Loads asset file and spawns remaining [Bird] components
 /// on entities with a [BirdAssetHandle].
@@ -12,11 +17,11 @@ pub(super) fn load_bird_assets_sys(
     asset_server: Res<AssetServer>,
     assets: Res<Assets<BirdAsset>>,
 ) {
-
     for EntityAssetReadyEvent((entities, asset_id)) in asset_events.read() {
         let asset = assets.get(*asset_id).expect("asset does not exist");
         for entity in entities {
-            let mut target_tf = TargetTransform::new(Transform::IDENTITY, EaseFunction::ExponentialOut);
+            let mut target_tf =
+                TargetTransform::new(Transform::IDENTITY, EaseFunction::ExponentialOut);
             target_tf.duration_factor = asset.velocity * 0.015;
             target_tf.lerp_transform = false; // conflicts with movement if enabled
             target_tf.finish();
@@ -41,21 +46,24 @@ pub(super) fn load_bird_assets_sys(
                     },
                     target_tf,
                 ))
-                .with_child((
-                    BirdHungerBar,
-                    Transform::from_xyz(asset.size.x * 0.6, 0., 200.),
-                ));
+                .with_child((BirdHungerBar, Transform::from_xyz(asset.size.x * 0.6, 0., 200.)));
         }
     }
 }
 
-
 #[derive(Asset, TypePath, Debug, Deserialize, Default)]
 pub struct BirdAsset {
-    name: String,
-    hunger: i8,
-    size: Vec2,
-    sprite: PathBuf,
-    velocity: f32,
-    on_feed_points: u32,
+    pub name: String,
+    pub hunger: i8,
+    pub size: Vec2,
+    pub sprite: PathBuf,
+    pub velocity: f32,
+    pub on_feed_points: u32,
+    pub droppings: Option<Vec<BirdAssetDroppingOption>>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct BirdAssetDroppingOption {
+    pub probability: f32,
+    pub asset: PathBuf,
 }

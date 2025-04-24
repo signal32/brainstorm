@@ -1,13 +1,19 @@
-use bevy::{math::f32, prelude::*};
-use rand::Rng;
+use std::path::PathBuf;
 
+use bevy::{math::f32, prelude::*};
+use rand::{
+    Rng,
+    distr::{Distribution, weighted::WeightedIndex},
+};
+use serde::Deserialize;
+
+use super::{Bird, asset::BirdAsset};
 use crate::{
     level::LevelRootEntity,
     physics::{Collider, ColliderContactEvent, ColliderIntersectionMode, Velocity},
     player::Player,
+    util::{AssetHandle, AssetManagerPlugin, EntityAssetReadyEvent},
 };
-
-use super::Bird;
 
 /// Birds occasionally drop things.
 /// Those things move until they hit the ground.
@@ -18,9 +24,11 @@ pub struct BirdDroppingPlugin;
 
 impl Plugin for BirdDroppingPlugin {
     fn build(&self, app: &mut App) {
+        app.add_plugins(AssetManagerPlugin::<BirdDroppingAsset>::default());
         app.add_systems(
             FixedUpdate,
             (
+                load_dropping_sys,
                 bird_spawn_dropping_sys,
                 dropping_fall_sys,
                 dropping_despawn_sys,
@@ -28,6 +36,11 @@ impl Plugin for BirdDroppingPlugin {
             ),
         );
     }
+}
+
+#[derive(Asset, TypePath, Debug, Deserialize, Default)]
+pub struct BirdDroppingAsset {
+    sprite: PathBuf,
 }
 
 #[derive(Debug, Component)]
@@ -39,15 +52,35 @@ struct BirdDroppingOnGround {
     on_ground_time_seconds: f32,
 }
 
+fn load_dropping_sys(
+    mut cmd: Commands,
+    mut asset_events: EventReader<EntityAssetReadyEvent<BirdDroppingAsset>>,
+    asset_server: Res<AssetServer>,
+    assets: Res<Assets<BirdDroppingAsset>>,
+) {
+    for EntityAssetReadyEvent((entities, asset_id)) in asset_events.read() {
+        let asset = assets.get(*asset_id).expect("Asset should exist");
+        for entity in entities {
+            cmd.entity(*entity).clear_children().insert((
+                BirdDropping,
+                Collider::Rectangle(Rectangle::new(50., 50.)),
+                ColliderIntersectionMode::AllowAll,
+                Sprite { image: asset_server.load(asset.sprite.clone()), ..default() },
+            ));
+        }
+    }
+}
+
 /// Spawns [BirdDropping] at random for each hungry [Bird] in the level.
 fn bird_spawn_dropping_sys(
     mut cmd: Commands,
-    birds: Query<(&Bird, &Velocity, &Transform)>,
+    birds: Query<(&Bird, &Velocity, &Transform, &AssetHandle<BirdAsset>)>,
     level: LevelRootEntity,
     asset_server: Res<AssetServer>,
+    assets: Res<Assets<BirdAsset>>,
 ) {
     let mut rng = rand::rng();
-    for (bird, velocity, tf) in birds.iter() {
+    for (bird, velocity, tf, asset_handle) in birds.iter() {
         if bird.hunger == 0 || !rng.random_bool(0.005) {
             continue;
         }
@@ -55,17 +88,20 @@ fn bird_spawn_dropping_sys(
         let mut dropping_tf = tf.clone();
         dropping_tf.translation.z -= 1.;
 
-        cmd.entity(*level).with_child((
-            dropping_tf,
-            Velocity(velocity.0),
-            BirdDropping,
-            Collider::Rectangle(Rectangle::new(50., 50.)),
-            ColliderIntersectionMode::AllowAll,
-            Sprite {
-                image: asset_server.load("sprites/seeds.png"),
-                ..default()
-            },
-        ));
+        if let Some(asset) = assets.get(&asset_handle.0)
+            && let Some(droppings) = &asset.droppings
+        {
+            let dist = WeightedIndex::new(droppings.iter().map(|d| d.probability)).unwrap();
+            let dropping_index = dist.sample(&mut rng);
+
+            cmd.entity(*level).with_child((
+                dropping_tf,
+                Velocity(velocity.0),
+                AssetHandle::<BirdDroppingAsset>(
+                    asset_server.load(droppings[dropping_index].asset.clone()),
+                ),
+            ));
+        }
     }
 }
 
@@ -85,9 +121,8 @@ fn dropping_fall_sys(
 
             if velocity.0 == 0. {
                 tf.translation.z = 10.; // IDK we should probably set a ground Z value somewhere shared
-                cmd.entity(entity).insert(BirdDroppingOnGround {
-                    on_ground_time_seconds: time.elapsed_secs(),
-                });
+                cmd.entity(entity)
+                    .insert(BirdDroppingOnGround { on_ground_time_seconds: time.elapsed_secs() });
             }
         }
     }
