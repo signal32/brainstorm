@@ -48,6 +48,8 @@ struct Bird {
     initial_hunger: i8,
     /// Base points to grant player on being fed unit of food
     on_feed_points: u32,
+    /// Probability that on each update the bird will drop something
+    drop_probability: f32,
 }
 
 impl Bird {

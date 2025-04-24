@@ -9,6 +9,8 @@ use crate::{
     util::{AnimationIndices, AnimationTimer, EntityAssetReadyEvent, TargetTransform},
 };
 
+const DEFAULT_DROPPING_PROBABILITY: f32 = 0.0005;
+
 /// Loads asset file and spawns remaining [Bird] components
 /// on entities with a [BirdAssetHandle].
 pub(super) fn load_bird_assets_sys(
@@ -61,6 +63,9 @@ pub(super) fn load_bird_assets_sys(
                         hunger: asset.hunger,
                         initial_hunger: asset.hunger,
                         on_feed_points: asset.on_feed_points,
+                        drop_probability: asset
+                            .drop_probability
+                            .unwrap_or(DEFAULT_DROPPING_PROBABILITY),
                     },
                     Velocity(asset.velocity),
                     Collider::Rectangle(Rectangle::from_size(asset.size)),
@@ -84,6 +89,7 @@ pub struct BirdAsset {
     pub on_feed_points: u32,
     /// Columns and rows in sprite sheet
     atlas_dimensions: Option<UVec2>,
+    pub drop_probability: Option<f32>,
     pub droppings: Option<Vec<BirdAssetDroppingOption>>,
 }
 

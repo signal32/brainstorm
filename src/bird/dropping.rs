@@ -81,7 +81,7 @@ fn bird_spawn_dropping_sys(
 ) {
     let mut rng = rand::rng();
     for (bird, velocity, tf, asset_handle) in birds.iter() {
-        if bird.hunger == 0 || !rng.random_bool(0.005) {
+        if bird.hunger == 0 || !rng.random_bool(bird.drop_probability as f64) {
             continue;
         }
 
