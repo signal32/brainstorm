@@ -3,7 +3,7 @@ use crate::{
     level::{Level, LevelAsset, LevelRootEntity},
     util::AssetHandle
 };
-use bevy::{prelude::*, utils::HashMap};
+use bevy::{platform::collections::HashMap, prelude::*};
 use rand::Rng;
 use std::f32::consts::PI;
 
@@ -69,8 +69,9 @@ pub(super) fn setup_spawner_sys(
     windows: Query<&Window>,
     root: LevelRootEntity,
 ) {
-    let window_height = windows.single().height();
-    let window_width = windows.single().width();
+    let window = windows.single().expect("Application should have a window.");
+    let window_height = window.height();
+    let window_width = window.width();
     let bird_padding = 200.;
 
     for ev in asset_ev.read() {

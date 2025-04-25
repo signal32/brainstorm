@@ -1,8 +1,8 @@
 use bevy::{
     color::palettes::css::RED,
-    ecs::query::{QueryData, WorldQuery},
+    ecs::query::QueryData,
     math::bounding::{Aabb2d, Bounded2d, IntersectsVolume},
-    prelude::*, utils::hashbrown::HashMap
+    platform::collections::HashMap, prelude::*
 };
 
 use super::GameState;
@@ -37,7 +37,7 @@ fn velocity_move_sys(
     windows: Query<&Window>,
     time: Res<Time>,
 ) {
-    let height = windows.single().height();
+    let height = windows.single().expect("Application should have a window").height();
     for (entity, mut tf, velocity) in entities.iter_mut() {
         let forward = tf.rotation * Vec3::Y;
         let distance = velocity.0 * time.delta_secs();
@@ -151,18 +151,18 @@ pub struct ColliderContactEvent {
 }
 
 impl ColliderContactEvent {
-    pub fn either<'world, 'state, T>(
-        &self,
-        query: &'world Query<'world, 'state, T::ReadOnly>
-    ) -> Option<<T::ReadOnly as WorldQuery>::Item<'world>> where T: QueryData, {
-        if let Ok(b) = query.get(self.a) {
-            Some(b)
-        } else if let Ok(b) = query.get(self.b) {
-            Some(b)
-        } else {
-            None
-        }
-    }
+    // pub fn either<'world, 'state, T>(
+    //     &self,
+    //     query: &'world Query<'world, 'state, T::ReadOnly>
+    // ) -> Option<<T::ReadOnly as WorldQuery>::Item<'world>> where T: QueryData, {
+    //     if let Ok(b) = query.get(self.a) {
+    //         Some(b)
+    //     } else if let Ok(b) = query.get(self.b) {
+    //         Some(b)
+    //     } else {
+    //         None
+    //     }
+    // }
 
     pub fn either_entity<T>(&self, query: &Query<T>) -> Option<Entity> where T: QueryData {
         if let Ok(_) = query.get(self.a) {

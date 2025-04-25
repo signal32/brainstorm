@@ -12,7 +12,7 @@ use crate::{
     level::Level,
     physics::{ColliderContactEvent, Velocity},
     projectile::Projectile,
-    util::{AssetManagerPlugin, TargetTransform},
+    util::{AssetManagerPlugin, TargetTransform, animate_sys},
     GameState
 };
 
@@ -24,6 +24,7 @@ impl Plugin for BirdPlugin {
         app.add_systems(OnEnter(GameState::Game), setup_sys);
         app.add_systems(FixedUpdate, setup_spawner_sys.run_if(in_state(GameState::Game)));
         app.add_systems(FixedUpdate, (
+            animate_sys,
             bird_spawn_sys,
             bird_hit_sys,
             update_bird_tweet_sys,
@@ -114,7 +115,7 @@ fn update_bird_hunger_bar_sys(
     for (bird, children) in changed_birds.iter() {
         let percent_full = (bird.initial_hunger - bird.hunger) as f32 / (bird.initial_hunger as f32);
 
-        for &child in children.iter() {
+        for child in children.iter() {
             if let Ok((entity, mut mesh, mut material)) = bird_hunger_bars.get_mut(child) {
                 if bird.hunger == 0 {
                     cmd.entity(entity).despawn()

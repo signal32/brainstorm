@@ -5,6 +5,10 @@ LevelAsset (
     spawner_z: 200,
     birds: [
         LevelBird (
+            asset: "birds/canada_goose.ron",
+            spawn_probability: 2.0
+        ),
+        LevelBird (
             asset: "birds/bluebird.ron",
             spawn_probability: 10.0
         ),

@@ -1,5 +1,5 @@
 use crate::util::ron_asset_loader::RonAssetLoader;
-use bevy::{prelude::*, utils::HashMap};
+use bevy::{platform::collections::HashMap, prelude::*};
 use serde::de::DeserializeOwned;
 use std::marker::PhantomData;
 
