@@ -37,17 +37,20 @@ LevelAsset (
     ],
     layers: [
         LevelLayer (
-            image: "textures/grass_tile_bw_64.png",
-            blend: true,
+            image: "textures/grass_tile_bw_64_noalpha.png",
+            tint: Some(( red: 0.3, green: 0.7, blue: 0, alpha: 0.7 )),
             tiled: true,
+            display_mode: Tiled (
+                scale: (11.0, 11.0),
+            ),
             z: 10
         ),
     ],
     scenery: [
         LevelScenery (
-            image: "sprites/magpie.png",
+            image: "sprites/oak_tree.png",
             size: (300,300),
-            translation: (-100,0,15),
+            translation: (-600,300,15),
             collision: false,
         ),
         LevelScenery (

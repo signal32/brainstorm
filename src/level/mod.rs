@@ -3,8 +3,7 @@ use std::path::PathBuf;
 use bevy::{
     color::palettes::css::{GREEN, ORANGE},
     image::{ImageAddressMode, ImageLoaderSettings, ImageSampler, ImageSamplerDescriptor},
-    prelude::*,
-    sprite::AlphaMode2d,
+    math::Affine2, prelude::*,
 };
 use serde::Deserialize;
 
@@ -84,9 +83,17 @@ pub struct LevelPlayer {
 #[derive(Debug, Deserialize)]
 pub struct LevelLayer {
     image: PathBuf,
-    tiled: bool,
-    blend: bool,
+    display_mode: LayerDisplayMode,
+    tint: Option<LinearRgba>,
     z: f32,
+}
+
+#[derive(Debug, Deserialize)]
+pub enum LayerDisplayMode {
+    Tiled {
+        scale: Vec2,
+    },
+    Fit,
 }
 
 #[derive(Debug, Deserialize)]
@@ -189,8 +196,8 @@ fn on_level_load_sys(
 
                 // Spawn layers
                 for layer in &level_asset.layers {
-                    let image_handle = match layer.tiled {
-                        true => {
+                    let image_handle = match layer.display_mode {
+                        LayerDisplayMode::Tiled { scale: _ } => {
                             asset_server.load_with_settings(layer.image.clone(), |s: &mut _| {
                                 *s = ImageLoaderSettings {
                                     sampler: ImageSampler::Descriptor(ImageSamplerDescriptor {
@@ -203,23 +210,23 @@ fn on_level_load_sys(
                                 }
                             })
                         }
-                        false => asset_server.load(layer.image.clone()),
+                        _ => asset_server.load(layer.image.clone()),
                     };
 
                     root_cmds.with_child((
                         Mesh2d(meshes.add(Rectangle::new(width, height))),
                         MeshMaterial2d(materials.add(ColorMaterial {
                             texture: Some(image_handle),
-                            alpha_mode: if (layer.blend) {
-                                // If blend is not okay we may need a custom shader to multiply
-                                // https://www.reddit.com/r/bevy/comments/132zyl6/additive_blending_of_sprites_in_2d/
-                                AlphaMode2d::Blend
-                            } else {
-                                AlphaMode2d::Opaque
+                            uv_transform: match layer.display_mode {
+                                LayerDisplayMode::Tiled { scale } => {
+                                    Affine2::from_scale(scale)
+                                }
+                                LayerDisplayMode::Fit => default(),
                             },
-                            // Need this field for proper scaling
-                            // Waiting for Bevy 0.16 which is nearly ready!
-                            // uv_transform: Affine2::from_scale(Vec2::new(2., 3.)),
+                            // If simple tinting is not enough then we may want a custom shader
+                            // for additive blending with other layers in the scene.
+                            // https://www.reddit.com/r/bevy/comments/132zyl6/additive_blending_of_sprites_in_2d/
+                            color: layer.tint.map_or(default(), Color::from),
                             ..default()
                         })),
                         Transform::from_xyz(0., 0., layer.z),
