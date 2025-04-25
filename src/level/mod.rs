@@ -151,13 +151,14 @@ fn on_level_load_sys(
                 let mut root_cmds = cmd.entity(*root);
 
                 // Make sure any old level entities have been removed
-                root_cmds.try_despawn_descendants();
+                root_cmds.despawn_related::<Children>();
 
                 // Reset level
                 level.score = 0;
 
-                let width = windows.single().width();
-                let height = windows.single().height();
+                let window = windows.single().expect("Application should have a window");
+                let width = window.width();
+                let height = window.height();
 
                 // Hit boxes to prevent player leaving play area
                 let play_area_hit_boxes = enclosing_rectangles(width, height);
@@ -252,7 +253,8 @@ fn on_level_load_sys(
             AssetEvent::Unused { id } => {
                 debug!("Clearing up level");
                 level_evtw.send(LevelEvent::Unloaded { id: *id });
-                cmd.entity(*root).try_despawn_descendants();
+                //cmd.entity(*root).try_despawn_descendants(); //cmd.entity(*root).despawn_related::<Children>();
+                cmd.entity(*root).despawn_related::<Children>();
             }
             _ => (),
         }
@@ -292,10 +294,10 @@ fn despawn_entities(
     for event in collision_evts.read() {
         if let Some(_) = event.either_entity(&despawners) {
             if !despawners.contains(event.a) {
-                cmd.entity(event.a).try_despawn_recursive()
+                cmd.entity(event.a).despawn_related::<Children>();
             }
             if !despawners.contains(event.b) {
-                cmd.entity(event.b).try_despawn_recursive()
+                cmd.entity(event.b).despawn_related::<Children>();
             }
         };
     }
