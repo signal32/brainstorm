@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use bevy::prelude::*;
 use serde::Deserialize;
 use crate::{
-    physics::{Collider, Velocity}, 
+    physics::{Collider, Velocity},
     util::{EntityAssetReadyEvent, TargetTransform, AnimationIndices, AnimationTimer}
 };
 use super::{Bird, BirdHungerBar};
@@ -54,7 +54,8 @@ pub(super) fn load_bird_assets_sys(
             sprite.flip_y = true; // birds render upside down if disabled
 
             cmd.entity(*entity)
-                .clear_children()
+                .despawn_related::<Children>()
+                // .remove::<Children>()
                 .insert((
                     Bird {
                         name: asset.name.clone(),

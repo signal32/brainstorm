@@ -123,9 +123,9 @@ fn on_level_load_sys(
         match evt {
             AssetEvent::LoadedWithDependencies { .. } => {
                 level.score = 0;
-
-                let width = windows.single().width();
-                let height = windows.single().height();
+                let window = windows.single().expect("Application should have a window");
+                let width = window.width();
+                let height = window.height();
 
                 // Hit boxes to prevent player leaving play area
                 let play_area_hit_boxes = enclosing_rectangles(width, height);
@@ -156,7 +156,7 @@ fn on_level_load_sys(
             },
             AssetEvent::Unused { .. } => {
                 info!("Clearing up level");
-                cmd.entity(*root).despawn_descendants();
+                cmd.entity(*root).despawn_related::<Children>();
             }
             _ => (),
         }
