@@ -98,7 +98,7 @@ fn on_player_asset_ready_sys(
     asset_server: Res<AssetServer>,
 ) {
     for EntityAssetReadyEvent((entities, asset_id)) in asset_ready_evts.read() {
-        let asset = assets.get(*asset_id).expect("Asset should exist");
+        let asset = assets.get(asset_id).expect("Asset should exist");
         for entity in entities {
             cmd.entity(*entity).insert((
                 Player { health: asset.health, speed: asset.speed },

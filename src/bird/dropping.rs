@@ -60,7 +60,7 @@ fn load_dropping_sys(
     assets: Res<Assets<BirdDroppingAsset>>,
 ) {
     for EntityAssetReadyEvent((entities, asset_id)) in asset_events.read() {
-        let asset = assets.get(*asset_id).expect("Asset should exist");
+        let asset = assets.get(asset_id).expect("Asset should exist");
         for entity in entities {
             if let Ok(mut entity) = cmd.get_entity(*entity) {
                 entity.despawn_related::<Children>().insert((

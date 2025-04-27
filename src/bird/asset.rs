@@ -21,7 +21,7 @@ pub(super) fn load_bird_assets_sys(
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
 ) {
     for EntityAssetReadyEvent((entities, asset_id)) in asset_events.read() {
-        let asset = assets.get(*asset_id).expect("asset does not exist");
+        let asset = assets.get(asset_id).expect("asset does not exist");
         for entity in entities {
             let mut target_tf =
                 TargetTransform::new(Transform::IDENTITY, EaseFunction::ExponentialOut);
