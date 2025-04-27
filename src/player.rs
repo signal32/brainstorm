@@ -5,7 +5,7 @@ use serde::Deserialize;
 
 use crate::{
     GameState,
-    level::{LevelAsset, LevelRootEntity},
+    level::{LevelAsset, LevelEvent, LevelRootEntity},
     physics::{Collider, ColliderIntersectionMode},
     projectile::ProjectileLauncher,
     util::{AssetHandle, AssetManagerPlugin, EntityAssetReadyEvent},
@@ -50,15 +50,15 @@ struct PlayerControls {
 
 fn setup_player_sys(
     mut cmd: Commands,
-    mut level_asset_evts: EventReader<AssetEvent<LevelAsset>>,
+    mut level_asset_evts: EventReader<LevelEvent>,
     level_assets: Res<Assets<LevelAsset>>,
     asset_server: Res<AssetServer>,
     root: LevelRootEntity,
 ) {
     for evt in level_asset_evts.read() {
         match evt {
-            AssetEvent::LoadedWithDependencies { id } => {
-                let level = level_assets.get(*id).expect("Level should exist");
+            &LevelEvent::Loaded { id } => {
+                let level = level_assets.get(id).expect("Level should exist");
                 let player_count: usize = 1; //TODO get this from game state
 
                 for (player_index, player) in level.players[0..player_count].iter().enumerate() {
@@ -73,11 +73,7 @@ fn setup_player_sys(
                             sprint: KeyCode::ShiftLeft,
                             fire: KeyCode::Space,
                         },
-                        Transform::from_xyz(
-                            player.initial_position.x,
-                            player.initial_position.y,
-                            0.,
-                        ),
+                        Transform::from_translation(player.initial_position),
                         Collider::Rectangle(Rectangle::new(100., 100.)),
                         ColliderIntersectionMode::None,
                     ));
@@ -103,7 +99,6 @@ fn on_player_asset_ready_sys(
 ) {
     for EntityAssetReadyEvent((entities, asset_id)) in asset_ready_evts.read() {
         let asset = assets.get(*asset_id).expect("Asset should exist");
-
         for entity in entities {
             cmd.entity(*entity).insert((
                 Player { health: asset.health, speed: asset.speed },

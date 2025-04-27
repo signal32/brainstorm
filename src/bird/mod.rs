@@ -141,7 +141,7 @@ fn update_bird_hunger_bar_sys(
         let percent_full =
             (bird.initial_hunger - bird.hunger) as f32 / (bird.initial_hunger as f32);
 
-        for &child in children.iter() {
+        for child in children.iter() {
             if let Ok((entity, mut mesh, mut material)) = bird_hunger_bars.get_mut(child) {
                 if bird.hunger == 0 {
                     cmd.entity(entity).despawn()

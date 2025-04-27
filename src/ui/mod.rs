@@ -88,7 +88,7 @@ pub struct ButtonNode;
 
 impl ButtonNode {
     pub fn spawn(
-        parent: &mut ChildBuilder,
+        parent: &mut ChildSpawnerCommands,
         asset_server: &Res<AssetServer>,
         button_action: ButtonAction,
         button_text: String,

@@ -56,7 +56,8 @@ pub(super) fn load_bird_assets_sys(
             sprite.flip_y = true; // birds render upside down if disabled
 
             cmd.entity(*entity)
-                .clear_children()
+                .despawn_related::<Children>()
+                // .remove::<Children>()
                 .insert((
                     Bird {
                         name: asset.name.clone(),
@@ -74,7 +75,10 @@ pub(super) fn load_bird_assets_sys(
                     AnimationTimer(Timer::from_seconds(0.25, TimerMode::Repeating)),
                     target_tf,
                 ))
-                .with_child((BirdHungerBar, Transform::from_xyz(asset.size.x * 0.6, 0., 200.)));
+                .with_child((
+                    BirdHungerBar,
+                    Transform::from_xyz(asset.size.x * 0.6, 0., 2.),
+                ));
         }
     }
 }
