@@ -301,10 +301,10 @@ fn despawn_entities(
     for event in collision_evts.read() {
         if let Some(_) = event.either_entity(&despawners) {
             if !despawners.contains(event.a) {
-                cmd.entity(event.a).despawn_related::<Children>();
+                cmd.entity(event.a).try_despawn();
             }
             if !despawners.contains(event.b) {
-                cmd.entity(event.b).despawn_related::<Children>();
+                cmd.entity(event.b).try_despawn();
             }
         };
     }
