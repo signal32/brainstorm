@@ -62,12 +62,14 @@ fn load_dropping_sys(
     for EntityAssetReadyEvent((entities, asset_id)) in asset_events.read() {
         let asset = assets.get(*asset_id).expect("Asset should exist");
         for entity in entities {
-            cmd.entity(*entity).despawn_related::<Children>().insert((
-                BirdDropping,
-                Collider::Rectangle(Rectangle::new(50., 50.)),
-                ColliderIntersectionMode::AllowAll,
-                Sprite { image: asset_server.load(asset.sprite.clone()), ..default() },
-            ));
+            if let Ok(mut entity) = cmd.get_entity(*entity) {
+                entity.despawn_related::<Children>().insert((
+                    BirdDropping,
+                    Collider::Rectangle(Rectangle::new(50., 50.)),
+                    ColliderIntersectionMode::AllowAll,
+                    Sprite { image: asset_server.load(asset.sprite.clone()), ..default() },
+                ));
+            };
         }
     }
 }
