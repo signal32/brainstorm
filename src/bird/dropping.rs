@@ -31,7 +31,7 @@ impl Plugin for BirdDroppingPlugin {
                 load_dropping_sys,
                 bird_spawn_dropping_sys,
                 dropping_fall_sys,
-                dropping_despawn_sys,
+                dropping_decay_sys,
                 poop_dropping_player_hit_sys,
             ),
         );
@@ -41,6 +41,7 @@ impl Plugin for BirdDroppingPlugin {
 #[derive(Asset, TypePath, Debug, Deserialize, Default)]
 pub struct BirdDroppingAsset {
     sprite: PathBuf,
+    decay_rate: f32,
 }
 
 #[derive(Debug, Component)]
@@ -61,7 +62,7 @@ fn load_dropping_sys(
     for EntityAssetReadyEvent((entities, asset_id)) in asset_events.read() {
         let asset = assets.get(*asset_id).expect("Asset should exist");
         for entity in entities {
-            cmd.entity(*entity).clear_children().insert((
+            cmd.entity(*entity).despawn_related::<Children>().insert((
                 BirdDropping,
                 Collider::Rectangle(Rectangle::new(50., 50.)),
                 ColliderIntersectionMode::AllowAll,
@@ -120,7 +121,7 @@ fn dropping_fall_sys(
             velocity.0 = (velocity.0 - 1.).max(0.);
 
             if velocity.0 == 0. {
-                tf.translation.z = 10.; // IDK we should probably set a ground Z value somewhere shared
+                tf.translation.z = 15.; // IDK we should probably set a ground Z value somewhere shared
                 cmd.entity(entity)
                     .insert(BirdDroppingOnGround { on_ground_time_seconds: time.elapsed_secs() });
             }
@@ -128,15 +129,22 @@ fn dropping_fall_sys(
     }
 }
 
-fn dropping_despawn_sys(
-    mut cmds: Commands,
-    droppings: Query<(Entity, &BirdDroppingOnGround)>,
-    time: Res<Time>,
+fn dropping_decay_sys(
+    mut cmd: Commands,
+    mut droppings: Query<(Entity, &mut Sprite, &AssetHandle<BirdDroppingAsset>), With<BirdDroppingOnGround>>,
+    assets: Res<Assets<BirdDroppingAsset>>,
 ) {
-    let elapsed = time.elapsed_secs();
-    for (entity, dropping) in droppings.iter() {
-        if elapsed - dropping.on_ground_time_seconds >= 3. {
-            cmds.entity(entity).despawn();
+    for (entity, mut sprite, handle) in droppings.iter_mut() {
+        let decay_rate = assets.get(&handle.0).map_or(0.0001, |asset| asset.decay_rate);
+
+        let mut alpha = sprite.color.alpha();
+        alpha -= decay_rate;
+
+        if alpha <= 0. {
+            cmd.entity(entity).despawn();
+        }
+        else {
+            sprite.color.set_alpha(alpha);
         }
     }
 }
