@@ -48,10 +48,7 @@ pub struct BirdDroppingAsset {
 struct BirdDropping;
 
 #[derive(Debug, Component)]
-struct BirdDroppingOnGround {
-    /// Elapsed time in seconds when dropping hit the ground.
-    on_ground_time_seconds: f32,
-}
+struct OnGround;
 
 fn load_dropping_sys(
     mut cmd: Commands,
@@ -116,7 +113,6 @@ fn bird_spawn_dropping_sys(
 fn dropping_fall_sys(
     mut cmd: Commands,
     mut droppings: Query<(Entity, &mut Velocity, &mut Transform), With<BirdDropping>>,
-    time: Res<Time>,
 ) {
     for (entity, mut velocity, mut tf) in droppings.iter_mut() {
         if velocity.0 > 0. {
@@ -125,7 +121,7 @@ fn dropping_fall_sys(
             if velocity.0 == 0. {
                 tf.translation.z = 15.; // IDK we should probably set a ground Z value somewhere shared
                 cmd.entity(entity)
-                    .insert(BirdDroppingOnGround { on_ground_time_seconds: time.elapsed_secs() });
+                    .insert(OnGround);
             }
         }
     }
@@ -133,7 +129,7 @@ fn dropping_fall_sys(
 
 fn dropping_decay_sys(
     mut cmd: Commands,
-    mut droppings: Query<(Entity, &mut Sprite, &AssetHandle<BirdDroppingAsset>), With<BirdDroppingOnGround>>,
+    mut droppings: Query<(Entity, &mut Sprite, &AssetHandle<BirdDroppingAsset>), With<OnGround>>,
     assets: Res<Assets<BirdDroppingAsset>>,
 ) {
     for (entity, mut sprite, handle) in droppings.iter_mut() {
@@ -153,7 +149,7 @@ fn dropping_decay_sys(
 
 fn poop_dropping_player_hit_sys(
     mut cmd: Commands,
-    droppings: Query<(&BirdDropping)>,
+    droppings: Query<&BirdDropping>,
     mut players: Query<&mut Player>,
     mut contact_ev: EventReader<ColliderContactEvent>,
 ) {
