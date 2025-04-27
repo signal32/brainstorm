@@ -17,7 +17,7 @@ impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<ColliderContactEvent>();
         app.add_systems(
-            FixedPreUpdate,
+            FixedFirst ,
             (update_collider_aabb_sys, collider_contact_sys).run_if(in_state(GameState::Game)),
         );
         app.add_systems(
