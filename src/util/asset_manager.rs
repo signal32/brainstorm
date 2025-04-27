@@ -91,7 +91,7 @@ fn update_entity_asset_registry_sys<T: Asset>(
 }
 
 #[derive(Debug, Event)]
-pub struct EntityAssetReadyEvent<T: Asset>(pub (Vec<Entity>, AssetId<T>));
+pub struct EntityAssetReadyEvent<T: Asset>(pub (Vec<Entity>, Handle<T>));
 
 /// Keeps track of entities with changed [AssetHandle] components and sends an [EntityAssetReadyEvent]
 /// once the asset the handle points to is ready.
@@ -102,7 +102,7 @@ fn send_asset_ready_event_sys<T: Asset>(
     mut asset_ready_evtw: EventWriter<EntityAssetReadyEvent<T>>,
     mut waiting_entities: Local<HashMap<AssetId<T>, Vec<Entity>>>,
     new_entities: Query<(Entity, &AssetHandle<T>), Changed<AssetHandle<T>>>,
-    assets: Res<Assets<T>>,
+    mut assets: ResMut<Assets<T>>,
 ) {
     for (entity, handle) in new_entities.iter() {
         waiting_entities
@@ -113,8 +113,8 @@ fn send_asset_ready_event_sys<T: Asset>(
 
     let mut empty_entries = vec![];
     for (asset_id, entities) in waiting_entities.iter() {
-        if assets.get(*asset_id).is_some() {
-            asset_ready_evtw.send(EntityAssetReadyEvent((entities.clone(), *asset_id)));
+        if let Some(strong_handle) = assets.get_strong_handle(*asset_id) {
+            asset_ready_evtw.write(EntityAssetReadyEvent((entities.clone(), strong_handle)));
             empty_entries.push(asset_id.clone())
         }
     }
@@ -131,17 +131,20 @@ fn send_asset_ready_event_sys<T: Asset>(
 fn send_asset_ready_when_changed<T: Asset>(
     mut asset_events: EventReader<AssetEvent<T>>,
     mut asset_ready_evtw: EventWriter<EntityAssetReadyEvent<T>>,
+    mut assets: ResMut<Assets<T>>,
     registry: Res<EntityAssetRegistry<T>>,
 ) {
     for event in asset_events.read() {
         match event {
             AssetEvent::Modified { id } => {
-                let entities = registry
+                if let Some(strong_handle) = assets.get_strong_handle(*id) {
+                    let entities = registry
                     .handle_entities
                     .get(id)
                     .cloned()
                     .unwrap_or_default();
-                asset_ready_evtw.send(EntityAssetReadyEvent((entities, *id)));
+                    asset_ready_evtw.write(EntityAssetReadyEvent((entities, strong_handle)));
+                }
             }
             _ => (),
         }
