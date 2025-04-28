@@ -79,6 +79,10 @@ fn main() {
         app.insert_state(state);
     }
 
+    app.insert_resource(AppConfig {
+        debug_render: args.debug_render.unwrap_or(false),
+    });
+
     app.run();
 }
 
@@ -89,6 +93,11 @@ pub(crate) enum GameState {
     Menu,
     #[default]
     Splash,
+}
+
+#[derive(Debug, Resource)]
+pub(crate) struct AppConfig {
+    pub debug_render: bool,
 }
 
 fn setup_sys(

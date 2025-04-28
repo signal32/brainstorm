@@ -1,9 +1,13 @@
 use super::asset::BirdAsset;
 use crate::{
     level::{Level, LevelAsset, LevelEvent, LevelRootEntity},
-    util::AssetHandle
+    util::AssetHandle, AppConfig
 };
-use bevy::{platform::collections::HashMap, prelude::*};
+use bevy::{
+    color::palettes::css::{GREEN, PURPLE},
+    platform::collections::HashMap,
+    prelude::*,
+};
 use rand::Rng;
 use std::f32::consts::PI;
 
@@ -23,6 +27,8 @@ pub(super) fn bird_spawn_sys(
     mut last_entity_spawn_time: Local<HashMap<Entity, f32>>,
     mut cmd: Commands,
     root: LevelRootEntity,
+    mut gizmos: Gizmos,
+    app_config: Res<AppConfig>,
 ) {
     let mut rng = rand::rng();
 
@@ -56,6 +62,15 @@ pub(super) fn bird_spawn_sys(
                     AssetHandle::<BirdAsset>(asset_server.load(random_bird.asset.as_str())),
                     spawner_tf.clone(),
                 ));
+            }
+
+            // Show position, direction, and status of spawners.
+            if app_config.debug_render {
+                let forward = spawner_tf.rotation.mul_vec3(Vec3::Y).truncate();
+                let tf_2d = spawner_tf.translation.xy();
+                let color = if cooldown_expired { GREEN } else { PURPLE };
+                gizmos.circle_2d(Isometry2d::from_translation(tf_2d), 5., color);
+                gizmos.arrow_2d(tf_2d, tf_2d + forward* 300., color);
             }
         }
     }
