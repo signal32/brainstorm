@@ -1,7 +1,7 @@
 use bevy::{
-    color::palettes::css::RED,
+    color::palettes::css::{GRAY, PURPLE, RED},
     ecs::query::{QueryData, QueryFilter},
-    math::bounding::{Aabb2d, Bounded2d, IntersectsVolume},
+    math::bounding::{Aabb2d, Bounded2d, BoundingVolume, IntersectsVolume},
     platform::collections::HashMap,
     prelude::*,
 };
@@ -26,7 +26,7 @@ impl Plugin for PhysicsPlugin {
         );
 
         if self.debug_render {
-            app.add_systems(FixedUpdate, debug_collisions_sys);
+            app.add_systems(FixedUpdate, (debug_collisions_sys, debug_collider_sys));
         }
     }
 }
@@ -146,6 +146,21 @@ fn debug_collisions_sys(
     for ColliderContactEvent { a, b } in contact_evw.read() {
         if let Some((a_tf, b_tf)) = transforms.get(*a).ok().zip(transforms.get(*b).ok()) {
             gizmos.line_2d(a_tf.translation.xy(), b_tf.translation.xy(), RED)
+        }
+    }
+}
+
+fn debug_collider_sys(
+    mut gizmos: Gizmos,
+    colliders: Query<(&ColliderAabb, &ColliderIntersectionMode)>
+) {
+    for (aabb, intersection_mode) in colliders.iter() {
+        if let Some(aabb) = aabb.0 {
+            let color = match intersection_mode {
+                ColliderIntersectionMode::AllowAll => GRAY,
+                ColliderIntersectionMode::None => PURPLE,
+            };
+            gizmos.rect_2d(aabb.center(), aabb.half_size() * 2., color);
         }
     }
 }
