@@ -91,6 +91,7 @@ pub(crate) enum GameState {
     Game,
     Pause,
     Menu,
+    GameOver,
     #[default]
     Splash,
 }
