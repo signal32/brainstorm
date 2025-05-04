@@ -1,11 +1,15 @@
 use std::path::PathBuf;
+
 use bevy::prelude::*;
 use serde::Deserialize;
-use crate::{
-    physics::{Collider, Velocity}, 
-    util::{EntityAssetReadyEvent, TargetTransform, AnimationIndices, AnimationTimer}
-};
+
 use super::{Bird, BirdHungerBar};
+use crate::{
+    physics::{Collider, Velocity},
+    util::{AnimationIndices, AnimationTimer, EntityAssetReadyEvent, TargetTransform},
+};
+
+const DEFAULT_DROPPING_PROBABILITY: f32 = 0.0005;
 
 /// Loads asset file and spawns remaining [Bird] components
 /// on entities with a [BirdAssetHandle].
@@ -17,9 +21,10 @@ pub(super) fn load_bird_assets_sys(
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
 ) {
     for EntityAssetReadyEvent((entities, asset_id)) in asset_events.read() {
-        let asset = assets.get(*asset_id).expect("asset does not exist");
+        let asset = assets.get(asset_id).expect("asset does not exist");
         for entity in entities {
-            let mut target_tf = TargetTransform::new(Transform::IDENTITY, EaseFunction::ExponentialOut);
+            let mut target_tf =
+                TargetTransform::new(Transform::IDENTITY, EaseFunction::ExponentialOut);
             target_tf.duration_factor = asset.velocity * 0.015;
             target_tf.lerp_transform = false; // conflicts with movement if enabled
             target_tf.finish();
@@ -45,22 +50,23 @@ pub(super) fn load_bird_assets_sys(
 
             let mut sprite = Sprite::from_atlas_image(
                 asset_server.load(asset.sprite.clone()),
-                TextureAtlas {
-                    layout: texture_atlas_layout,
-                    index: animation_indices.first,
-                },
+                TextureAtlas { layout: texture_atlas_layout, index: animation_indices.first },
             );
             sprite.custom_size = Some(asset.size);
             sprite.flip_y = true; // birds render upside down if disabled
 
             cmd.entity(*entity)
-                .clear_children()
+                .despawn_related::<Children>()
+                // .remove::<Children>()
                 .insert((
                     Bird {
                         name: asset.name.clone(),
                         hunger: asset.hunger,
                         initial_hunger: asset.hunger,
                         on_feed_points: asset.on_feed_points,
+                        drop_probability: asset
+                            .drop_probability
+                            .unwrap_or(DEFAULT_DROPPING_PROBABILITY),
                     },
                     Velocity(asset.velocity),
                     Collider::Rectangle(Rectangle::from_size(asset.size)),
@@ -71,7 +77,7 @@ pub(super) fn load_bird_assets_sys(
                 ))
                 .with_child((
                     BirdHungerBar,
-                    Transform::from_xyz(asset.size.x * 0.6, 0., 200.),
+                    Transform::from_xyz(asset.size.x * 0.6, 0., 2.),
                 ));
         }
     }
@@ -79,12 +85,20 @@ pub(super) fn load_bird_assets_sys(
 
 #[derive(Asset, TypePath, Debug, Deserialize, Default)]
 pub struct BirdAsset {
-    name: String,
-    hunger: i8,
-    size: Vec2,
-    sprite: PathBuf,
-    velocity: f32,
-    on_feed_points: u32,
+    pub name: String,
+    pub hunger: i8,
+    pub size: Vec2,
+    pub sprite: PathBuf,
+    pub velocity: f32,
+    pub on_feed_points: u32,
     /// Columns and rows in sprite sheet
     atlas_dimensions: Option<UVec2>,
+    pub drop_probability: Option<f32>,
+    pub droppings: Option<Vec<BirdAssetDroppingOption>>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct BirdAssetDroppingOption {
+    pub probability: f32,
+    pub asset: PathBuf,
 }

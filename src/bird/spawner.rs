@@ -1,9 +1,9 @@
 use super::asset::BirdAsset;
 use crate::{
-    level::{Level, LevelAsset, LevelRootEntity},
+    level::{Level, LevelAsset, LevelEvent, LevelRootEntity},
     util::AssetHandle
 };
-use bevy::{prelude::*, utils::HashMap};
+use bevy::{platform::collections::HashMap, prelude::*};
 use rand::Rng;
 use std::f32::consts::PI;
 
@@ -64,19 +64,20 @@ pub(super) fn bird_spawn_sys(
 /// Spawns bird spawners.
 pub(super) fn setup_spawner_sys(
     mut cmd: Commands,
-    mut asset_ev: EventReader<AssetEvent<LevelAsset>>,
+    mut asset_ev: EventReader<LevelEvent>,
     level_assets: Res<Assets<LevelAsset>>,
     windows: Query<&Window>,
     root: LevelRootEntity,
 ) {
-    let window_height = windows.single().height();
-    let window_width = windows.single().width();
+    let window = windows.single().expect("Application should have a window.");
+    let window_height = window.height();
+    let window_width = window.width();
     let bird_padding = 200.;
 
     for ev in asset_ev.read() {
         match ev {
-            AssetEvent::LoadedWithDependencies { id } => {
-                let level = level_assets.get(*id).expect("No level");
+            &LevelEvent::Loaded { id } => {
+                let level = level_assets.get(id).expect("No level");
 
                 for i in 0..level.spawner_qty {
                     let x = ((window_width - bird_padding) / (level.spawner_qty - 1) as f32) * i as f32;
@@ -84,7 +85,7 @@ pub(super) fn setup_spawner_sys(
                     let mut transform = Transform::from_xyz(
                         x - (window_width - bird_padding) * 0.5,
                         (window_height * 0.5) + 100.,
-                        50.,
+                        level.spawner_z,
                     );
                     transform.rotate_local_x(PI);
                     cmd.entity(*root).with_child((

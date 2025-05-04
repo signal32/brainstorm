@@ -1,10 +1,12 @@
-mod projectile;
-mod physics;
+#![feature(let_chains)]
+
 mod bird;
-mod util;
 mod level;
-mod ui;
+mod physics;
 mod player;
+mod projectile;
+mod ui;
+mod util;
 
 use std::path::PathBuf;
 
@@ -44,33 +46,31 @@ fn main() {
     let args = Args::parse();
     let mut app = App::new();
     app.add_plugins((
-            DefaultPlugins
-                .set(ImagePlugin::default_nearest())
-                .set(WindowPlugin {
-                    primary_window: Some(Window {
-                        title: format!("Bird Invaders {}", env!("CARGO_PKG_VERSION")),
-                        position: WindowPosition::Centered(match args.window_monitor_index {
-                            Some(index) => MonitorSelection::Index(index),
-                            None => MonitorSelection::Current,
-                        }),
-                        resolution: WindowResolution::new(
-                            args.window_width.unwrap_or(1600.),
-                            args.window_height.unwrap_or(900.),
-                        ),
-                        ..default()
-                    }),
-                    ..default()
-                },),
-            PhysicsPlugin { debug_render: args.debug_render.unwrap_or_default()},
-            ProjectilePlugin,
-            BirdPlugin,
-            UiPlugin,
-            TransformInterpolationPlugin,
-            PlayerPlugin,
-            match args.level {
-                Some(level) => LevelPlugin { default_level: PathBuf::from(level) },
-                None => LevelPlugin::default()
-            }
+        DefaultPlugins.set(ImagePlugin::default_nearest()).set(WindowPlugin {
+            primary_window: Some(Window {
+                title: format!("Bird Invaders {}", env!("CARGO_PKG_VERSION")),
+                position: WindowPosition::Centered(match args.window_monitor_index {
+                    Some(index) => MonitorSelection::Index(index),
+                    None => MonitorSelection::Current,
+                }),
+                resolution: WindowResolution::new(
+                    args.window_width.unwrap_or(1600.),
+                    args.window_height.unwrap_or(900.),
+                ),
+                ..default()
+            }),
+            ..default()
+        }),
+        PhysicsPlugin { debug_render: args.debug_render.unwrap_or_default() },
+        ProjectilePlugin,
+        BirdPlugin,
+        UiPlugin,
+        TransformInterpolationPlugin,
+        PlayerPlugin,
+        match args.level {
+            Some(level) => LevelPlugin { default_level: PathBuf::from(level) },
+            None => LevelPlugin::default(),
+        },
     ));
     app.add_systems(Startup, setup_sys);
 
@@ -92,12 +92,11 @@ pub(crate) enum GameState {
     Splash,
 }
 
-
 fn setup_sys(
     mut cmd: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
-    windows: Query<&Window>
+    windows: Query<&Window>,
 ) {
     cmd.spawn(Camera2d);
 
