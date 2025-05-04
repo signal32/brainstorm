@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use crate::level::Level;
+use crate::player::Player;
 
 use super::*;
 pub struct GameOverPlugin;
@@ -13,7 +14,7 @@ impl Plugin for GameOverPlugin {
                 game_over_button_action_sys
             ).run_if(in_state(GameState::GameOver))
         )
-        .add_systems(Update, temp_listener)
+        .add_systems(Update, is_game_over_yet_sys.run_if(in_state(GameState::Game)))
         .add_systems(OnExit(GameState::GameOver), despawn_entities::<OnGameOverScreen>);
     }
 }
@@ -86,11 +87,14 @@ fn game_over_button_action_sys(
     }
 }
 
-fn temp_listener(
-    keys: Res<ButtonInput<KeyCode>>,
+fn is_game_over_yet_sys(
     mut next_game_state: ResMut<NextState<GameState>>,
-){
-    if keys.just_pressed(KeyCode::KeyG) {
-        next_game_state.set(GameState::GameOver);
+    players: Query<&Player>,
+) {
+    for player in players {
+        if player.health <= 0 {
+            next_game_state.set(GameState::GameOver);
+            break
+        }
     }
 }
