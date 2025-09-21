@@ -7,17 +7,17 @@ impl Plugin for PausePlugin {
     fn build(&self, app: &mut App) {
         app
         .init_state::<PauseState>()
-            .add_systems(OnEnter(GameState::Pause), pause_setup_sys)
-            .add_systems(OnExit(GameState::Pause), despawn_entities::<OnMenuScreen>)
-            .add_systems(OnEnter(PauseState::PauseMenu), pause_menu_setup_sys)
-            .add_systems(OnExit(PauseState::PauseMenu), despawn_entities::<OnPauseMenuScreen>)
-            .add_systems(OnEnter(PauseState::Settings), settings_menu_setup_sys)
-            .add_systems(OnExit(PauseState::Settings), despawn_entities::<OnSettingsMenuScreen>)
-            .add_systems(Update, (
-                button_color_sys,
-                pause_button_action_sys,
-                pause_menu_listener_sys
-            ).run_if(in_state(GameState::Pause))
+        .add_systems(OnEnter(GameState::Pause), pause_setup_sys)
+        .add_systems(OnExit(GameState::Pause), despawn_entities::<OnMenuScreen>)
+        .add_systems(OnEnter(PauseState::PauseMenu), pause_menu_setup_sys)
+        .add_systems(OnExit(PauseState::PauseMenu), despawn_entities::<OnPauseMenuScreen>)
+        .add_systems(OnEnter(PauseState::Settings), settings_menu_setup_sys)
+        .add_systems(OnExit(PauseState::Settings), despawn_entities::<OnSettingsMenuScreen>)
+        .add_systems(Update, (
+            button_color_sys,
+            pause_button_action_sys,
+            pause_menu_listener_sys
+        ).run_if(in_state(GameState::Pause))
         );
     }
 }
