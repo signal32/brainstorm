@@ -1,3 +1,4 @@
+pub mod game_over;
 pub mod main_menu;
 pub mod pause;
 pub mod splash;
@@ -6,6 +7,7 @@ use super::GameState;
 use bevy::prelude::*;
 use std::{path::PathBuf, sync::LazyLock};
 
+use game_over::*;
 use main_menu::*;
 use pause::*;
 use splash::*;
@@ -23,7 +25,7 @@ pub struct UiPlugin;
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((MenuPlugin, PausePlugin, SplashPlugin));
+        app.add_plugins((MenuPlugin, PausePlugin, SplashPlugin, GameOverPlugin));
         app.add_systems(
             Update,
             (pause_menu_listener_sys).run_if(in_state(GameState::Game)),
@@ -36,7 +38,7 @@ impl Plugin for UiPlugin {
 /// Can be useful to despawn (or otherwise affect)
 /// the entire Menu regardless of where you are in it
 /// e.g. if you hit Esc while in [`GameState::Menu`] it should despawn all
-/// [`OnMenuScreen`] entities and switch to [`GameState::Gam`e], which would be difficult to do
+/// [`OnMenuScreen`] entities and switch to [`GameState::Game`], which would be difficult to do
 /// if we used only [`OnMainMenuScreen`] and [`OnSettingsMenuScreen`]
 
 #[derive(Component)]
@@ -54,6 +56,7 @@ pub(crate) struct OnSettingsMenuScreen;
 pub(crate) enum ButtonAction {
     Menu(MenuButtonAction),
     Pause(PauseButtonAction),
+    GameOver(GameOverButtonAction),
     Quit,
     Settings,
 }
@@ -71,6 +74,13 @@ pub(crate) enum PauseButtonAction {
     BackToMenu,
     QuitToTitle,
     Resume,
+}
+
+// Enum of all actions a [Button] on the game over screen should be able to perform
+#[derive(Debug)]
+pub(crate) enum GameOverButtonAction {
+    ReturnToTitle,
+    TryAgain,
 }
 
 /// ButtonNode! Standardise your buttons with this one cool trick!
@@ -128,18 +138,15 @@ pub struct MenuContainerNode;
 
 impl MenuContainerNode {
     pub fn spawn(cmd: &mut Commands) -> Entity {
-        cmd.spawn((
-            Node {
-                width: Val::Percent(100.0),
-                height: Val::Percent(100.0),
-                align_items: AlignItems::Center,
-                justify_content: JustifyContent::Center,
-                flex_direction: FlexDirection::Column,
-                ..default()
-            },
-            BackgroundColor(*MENU_BACKGROUND_COLOR),
-        ))
-        .id()
+        cmd.spawn((Node {
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::Center,
+            flex_direction: FlexDirection::Column,
+            ..default()
+        },))
+            .id()
     }
 }
 
@@ -285,7 +292,11 @@ pub(crate) fn settings_menu_setup_sys(
     }
     let container = MenuContainerNode::spawn(&mut cmd);
     cmd.entity(container)
-        .insert((OnMenuScreen, OnSettingsMenuScreen))
+        .insert((
+            OnMenuScreen,
+            OnSettingsMenuScreen,
+            BackgroundColor(*MENU_BACKGROUND_COLOR),
+        ))
         .with_children(|parent| {
             parent.spawn(sub_title_text);
         })

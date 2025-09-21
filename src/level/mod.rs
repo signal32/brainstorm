@@ -37,6 +37,7 @@ impl Plugin for LevelPlugin {
             .add_systems(Startup, setup_level_plugin_sys)
             .add_systems(OnEnter(GameState::Game), load_level_sys)
             .add_systems(OnEnter(GameState::Menu), unload_level_sys)
+            .add_systems(OnEnter(GameState::GameOver), unload_level_sys)
             .add_systems(FixedUpdate, (on_level_load_sys, despawn_entities));
     }
 }
@@ -102,6 +103,7 @@ pub struct LevelScenery {
     size: Vec2,
     translation: Vec3,
     collision: bool,
+    collider_size: Vec2,
 }
 
 /// Wait for current level asset to load then setup game and transition to [GameState::Game] when ready.
@@ -247,7 +249,7 @@ fn on_level_load_sys(
 
                         if scenery.collision {
                             scenery_cmds.insert((
-                                Collider::Rectangle(Rectangle::from_size(scenery.size)),
+                                Collider::Rectangle(Rectangle::from_size(scenery.collider_size)),
                                 ColliderIntersectionMode::None,
                                 ColliderStatic,
                             ));

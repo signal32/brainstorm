@@ -105,9 +105,9 @@ fn on_player_asset_ready_sys(
                 ProjectileLauncher { launch_key: KeyCode::Space },
                 Sprite {
                     image: asset_server.load(asset.sprite.clone()),
-                    custom_size: Some(Vec2::splat(100.)),
+                    custom_size: Some(Vec2::splat(75.)),
                     image_mode: SpriteImageMode::Auto,
-                    flip_y: true,
+                    flip_y: false,
                     ..default()
                 },
             ));

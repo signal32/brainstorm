@@ -14,10 +14,10 @@ impl Plugin for PausePlugin {
         .add_systems(OnEnter(PauseState::Settings), settings_menu_setup_sys)
         .add_systems(OnExit(PauseState::Settings), despawn_entities::<OnSettingsMenuScreen>)
         .add_systems(Update, (
-                button_color_sys,
-                pause_button_action_sys,
-                pause_menu_listener_sys
-            ).run_if(in_state(GameState::Pause))
+            button_color_sys,
+            pause_button_action_sys,
+            pause_menu_listener_sys
+        ).run_if(in_state(GameState::Pause))
         );
     }
 }
@@ -46,7 +46,11 @@ fn pause_menu_setup_sys(mut cmd: Commands, asset_server: Res<AssetServer>) {
         TextColor(MENU_TEXT_COLOR),
     );
     cmd.entity(container)
-        .insert((OnMenuScreen, OnPauseMenuScreen))
+        .insert((
+            OnMenuScreen,
+            OnPauseMenuScreen,
+            BackgroundColor(*MENU_BACKGROUND_COLOR),
+        ))
         .with_children(|parent| {
             parent.spawn(title_text);
         })
