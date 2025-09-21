@@ -43,11 +43,7 @@ fn menu_setup_sys(mut menu_state: ResMut<NextState<MenuState>>) {
     debug!("menu state: main menu")
 }
 
-fn main_menu_setup_sys(
-    mut cmd: Commands,
-    asset_server: Res<AssetServer>,
-) {
-    let container = MenuContainerNode::spawn(&mut cmd);
+fn main_menu_setup_sys(mut cmd: Commands, asset_server: Res<AssetServer>) {
     let title_text = (
         Text::new("Bird Invaders"),
         MenuFont::title_font(&asset_server),
@@ -57,11 +53,51 @@ fn main_menu_setup_sys(
             ..default()
         },
     );
-    cmd.entity(container).
-    insert((
+    let top_left_border = (
+        Sprite {
+            image: asset_server.load(PathBuf::from("menu").join("top_left_border.png")),
+            custom_size: Some(Vec2::splat(300.0)),
+            ..default()
+        },
+        Transform::from_xyz(-450.0, 250.0, -10.0),
         OnMenuScreen,
-        OnMainMenuScreen
-    ))
+        OnMainMenuScreen,
+    );
+    let top_right_border = (
+        Sprite {
+            image: asset_server.load(PathBuf::from("menu").join("top_right_border.png")),
+            custom_size: Some(Vec2::splat(300.0)),
+            ..default()
+        },
+        Transform::from_xyz(450.0, 250.0, -10.0),
+        OnMenuScreen,
+        OnMainMenuScreen,
+    );
+    let bottom_left_border = (
+        Sprite {
+            image: asset_server.load(PathBuf::from("menu").join("bottom_left_border.png")),
+            custom_size: Some(Vec2::splat(300.0)),
+            ..default()
+        },
+        Transform::from_xyz(-450.0, -250.0, -10.0),
+        OnMenuScreen,
+        OnMainMenuScreen,
+    );
+    let bottom_right_border = (
+        Sprite {
+            image: asset_server.load(PathBuf::from("menu").join("bottom_right_border.png")),
+            custom_size: Some(Vec2::splat(300.0)),
+            ..default()
+        },
+        Transform::from_xyz(450.0, -250.0, -10.0),
+        OnMenuScreen,
+        OnMainMenuScreen,
+    );
+
+    let container = MenuContainerNode::spawn(&mut cmd);
+
+    cmd.entity(container)
+        .insert((OnMenuScreen, OnMainMenuScreen))
         .with_children(|parent| {
             parent.spawn(title_text);
         })
@@ -89,6 +125,11 @@ fn main_menu_setup_sys(
                 "Quit".to_string(),
             );
         });
+    
+    cmd.spawn(top_left_border);
+    cmd.spawn(top_right_border);
+    cmd.spawn(bottom_left_border);
+    cmd.spawn(bottom_right_border);
 }
 
 /// Defines the actions that should occur on [Button] presses

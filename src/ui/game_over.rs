@@ -1,6 +1,6 @@
-use bevy::prelude::*;
 use crate::level::Level;
 use crate::player::Player;
+use bevy::prelude::*;
 
 use super::*;
 pub struct GameOverPlugin;
@@ -8,25 +8,21 @@ pub struct GameOverPlugin;
 impl Plugin for GameOverPlugin {
     fn build(&self, app: &mut App) {
         app
-        .add_systems(OnEnter(GameState::GameOver), game_over_setup_sys)
-        .add_systems(Update, (
-                button_color_sys,
-                game_over_button_action_sys
+.add_systems(OnEnter(GameState::GameOver), game_over_setup_sys)
+            .add_systems(Update, (
+button_color_sys,
+game_over_button_action_sys
             ).run_if(in_state(GameState::GameOver))
-        )
-        .add_systems(Update, is_game_over_yet_sys.run_if(in_state(GameState::Game)))
-        .add_systems(OnExit(GameState::GameOver), despawn_entities::<OnGameOverScreen>);
+            )
+            .add_systems(Update, is_game_over_yet_sys.run_if(in_state(GameState::Game)))
+            .add_systems(OnExit(GameState::GameOver), despawn_entities::<OnGameOverScreen>);
     }
 }
 
-#[derive (Component)]
+#[derive(Component)]
 struct OnGameOverScreen;
 
-fn game_over_setup_sys(
-    mut cmd: Commands,
-    level: ResMut<Level>,
-    asset_server: Res<AssetServer>
-) {
+fn game_over_setup_sys(mut cmd: Commands, level: ResMut<Level>, asset_server: Res<AssetServer>) {
     let container = MenuContainerNode::spawn(&mut cmd);
     let game_over_text = (
         Text::new("Game Over"),
@@ -39,7 +35,7 @@ fn game_over_setup_sys(
         TextColor(MENU_TEXT_COLOR),
     );
     cmd.entity(container)
-        .insert(OnGameOverScreen)
+        .insert((OnGameOverScreen, BackgroundColor(*MENU_BACKGROUND_COLOR)))
         .with_children(|parent| {
             parent.spawn(game_over_text);
         })
@@ -94,7 +90,7 @@ fn is_game_over_yet_sys(
     for player in players {
         if player.health <= 0 {
             next_game_state.set(GameState::GameOver);
-            break
+            break;
         }
     }
 }

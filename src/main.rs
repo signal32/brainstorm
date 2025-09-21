@@ -8,7 +8,7 @@ mod projectile;
 mod ui;
 mod util;
 
-use std::path::PathBuf;
+use std::{path::PathBuf, sync::LazyLock};
 
 use bevy::{prelude::*, window::WindowResolution};
 use bird::BirdPlugin;
@@ -19,6 +19,8 @@ use player::PlayerPlugin;
 use projectile::{ProjectileLauncher, ProjectilePlugin};
 use ui::UiPlugin;
 use util::TransformInterpolationPlugin;
+
+static GAME_BACKGROUND_COLOR: LazyLock<Color> = LazyLock::new(|| Color::srgb_u8(56, 47, 30));
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -82,6 +84,8 @@ fn main() {
     app.insert_resource(AppConfig {
         debug_render: args.debug_render.unwrap_or(false),
     });
+
+    app.insert_resource(ClearColor(*GAME_BACKGROUND_COLOR));
 
     app.run();
 }
