@@ -54,6 +54,14 @@ LevelAsset (
             collision: true,
             collider_size: (300,300),
         ),
+        // top right tree (back)
+        LevelScenery (
+            image: "sprites/oak_tree.png",
+            size: (500,500),
+            translation: (-390,500,15),
+            collision: true,
+            collider_size: (300,300),
+        ),
         // top left corner tree (mostly hidden)
         LevelScenery (
             image: "sprites/oak_tree.png",
@@ -70,7 +78,7 @@ LevelAsset (
             collision: true,
             collider_size: (300,300),
         ),
-        // top right tree (front)
+        // top right corner tree (mostly hidden)
         LevelScenery (
             image: "sprites/oak_tree.png",
             size: (500,500),
@@ -78,7 +86,15 @@ LevelAsset (
             collision: true,
             collider_size: (300,300),
         ),
-        // top right corner tree (mostly hidden)
+        // top right tree (back)
+        LevelScenery (
+            image: "sprites/oak_tree.png",
+            size: (500,500),
+            translation: (470,480,15),
+            collision: true,
+            collider_size: (300,300),
+        ),
+        // top right tree (front)
         LevelScenery (
             image: "sprites/oak_tree.png",
             size: (500,500),
