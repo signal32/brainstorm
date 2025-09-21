@@ -1,6 +1,7 @@
 #![feature(let_chains)]
 
 mod bird;
+mod hud;
 mod level;
 mod physics;
 mod player;
@@ -13,6 +14,7 @@ use std::path::PathBuf;
 use bevy::{prelude::*, window::WindowResolution};
 use bird::BirdPlugin;
 use clap::{Parser, ValueEnum};
+use hud::HudPlugin;
 use level::LevelPlugin;
 use physics::PhysicsPlugin;
 use player::PlayerPlugin;
@@ -65,6 +67,7 @@ fn main() {
         ProjectilePlugin,
         BirdPlugin,
         UiPlugin,
+        HudPlugin,
         TransformInterpolationPlugin,
         PlayerPlugin,
         match args.level {
