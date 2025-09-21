@@ -48,7 +48,7 @@ LevelAsset (
     scenery: [
         // top left tree (front)
         LevelScenery (
-            image: "sprites/oak_tree.png",
+            image: "sprites/scenery/oak_tree.png",
             size: (500,500),
             translation: (-650,320,15),
             collision: true,
@@ -56,7 +56,7 @@ LevelAsset (
         ),
         // top right tree (back)
         LevelScenery (
-            image: "sprites/oak_tree.png",
+            image: "sprites/scenery/oak_tree.png",
             size: (500,500),
             translation: (-390,500,15),
             collision: true,
@@ -64,7 +64,7 @@ LevelAsset (
         ),
         // top left corner tree (mostly hidden)
         LevelScenery (
-            image: "sprites/oak_tree.png",
+            image: "sprites/scenery/oak_tree.png",
             size: (500,500),
             translation: (-500,400,15),
             collision: true,
@@ -72,7 +72,7 @@ LevelAsset (
         ),
         // left middle tree
         LevelScenery (
-            image: "sprites/oak_tree.png",
+            image: "sprites/scenery/oak_tree.png",
             size: (500,500),
             translation: (-700,200,15),
             collision: true,
@@ -80,7 +80,7 @@ LevelAsset (
         ),
         // top right corner tree (mostly hidden)
         LevelScenery (
-            image: "sprites/oak_tree.png",
+            image: "sprites/scenery/oak_tree.png",
             size: (500,500),
             translation: (650,320,15),
             collision: true,
@@ -88,7 +88,7 @@ LevelAsset (
         ),
         // top right tree (back)
         LevelScenery (
-            image: "sprites/oak_tree.png",
+            image: "sprites/scenery/oak_tree.png",
             size: (500,500),
             translation: (470,480,15),
             collision: true,
@@ -96,7 +96,7 @@ LevelAsset (
         ),
         // top right tree (front)
         LevelScenery (
-            image: "sprites/oak_tree.png",
+            image: "sprites/scenery/oak_tree.png",
             size: (500,500),
             translation: (500,400,15),
             collision: true,
@@ -104,7 +104,7 @@ LevelAsset (
         ),
         // right middle tree
         LevelScenery (
-            image: "sprites/oak_tree.png",
+            image: "sprites/scenery/oak_tree.png",
             size: (500,500),
             translation: (700,200,15),
             collision: true,
@@ -113,7 +113,7 @@ LevelAsset (
         // note: birds are at z=200 so bottom trees are slightly above at 210
         // bottom left corner tree
         LevelScenery (
-            image: "sprites/oak_tree.png",
+            image: "sprites/scenery/oak_tree.png",
             size: (500,500),
             translation: (-700,-530,210),
             collision: false,
@@ -121,7 +121,7 @@ LevelAsset (
         ),
         // bottom tree 2
         LevelScenery (
-            image: "sprites/oak_tree.png",
+            image: "sprites/scenery/oak_tree.png",
             size: (500,500),
             translation: (-500,-550,210),
             collision: false,
@@ -129,7 +129,7 @@ LevelAsset (
         ),
         // bottom tree 3
         LevelScenery (
-            image: "sprites/oak_tree.png",
+            image: "sprites/scenery/oak_tree.png",
             size: (500,500),
             translation: (-300,-580,210),
             collision: false,
@@ -137,7 +137,7 @@ LevelAsset (
         ),
         // bottom tree 4
         LevelScenery (
-            image: "sprites/oak_tree.png",
+            image: "sprites/scenery/oak_tree.png",
             size: (500,500),
             translation: (-100,-560,210),
             collision: false,
@@ -145,7 +145,7 @@ LevelAsset (
         ),
         // bottom tree 5
         LevelScenery (
-            image: "sprites/oak_tree.png",
+            image: "sprites/scenery/oak_tree.png",
             size: (500,500),
             translation: (-50,-570,210),
             collision: false,
@@ -153,7 +153,7 @@ LevelAsset (
         ),
         // bottom tree 6
         LevelScenery (
-            image: "sprites/oak_tree.png",
+            image: "sprites/scenery/oak_tree.png",
             size: (500,500),
             translation: (100,-565,210),
             collision: false,
@@ -161,7 +161,7 @@ LevelAsset (
         ),
         // bottom tree 7
         LevelScenery (
-            image: "sprites/oak_tree.png",
+            image: "sprites/scenery/oak_tree.png",
             size: (500,500),
             translation: (300,-585,210),
             collision: false,
@@ -169,7 +169,7 @@ LevelAsset (
         ),
         // bottom tree 8
         LevelScenery (
-            image: "sprites/oak_tree.png",
+            image: "sprites/scenery/oak_tree.png",
             size: (500,500),
             translation: (450,-525,210),
             collision: false,
@@ -177,9 +177,133 @@ LevelAsset (
         ),
         // bottom right corner tree
         LevelScenery (
-            image: "sprites/oak_tree.png",
+            image: "sprites/scenery/oak_tree.png",
             size: (500,500),
             translation: (700,-520,210),
+            collision: false,
+            collider_size: (0,0),
+        ),
+        // dandelions
+        LevelScenery (
+            image: "sprites/scenery/dandelion.png",
+            size: (50,50),
+            translation: (380,260,15),
+            collision: false,
+            collider_size: (0,0),
+        ),
+        LevelScenery (
+            image: "sprites/scenery/dandelion.png",
+            size: (50,50),
+            translation: (-600,10,15),
+            collision: false,
+            collider_size: (0,0),
+        ),
+        LevelScenery (
+            image: "sprites/scenery/dandelion.png",
+            size: (50,50),
+            translation: (-290,300,15),
+            collision: false,
+            collider_size: (0,0),
+        ),
+        LevelScenery (
+            image: "sprites/scenery/dandelion.png",
+            size: (50,50),
+            translation: (680,-40,15),
+            collision: false,
+            collider_size: (0,0),
+        ),
+        LevelScenery (
+            image: "sprites/scenery/dandelion.png",
+            size: (50,50),
+            translation: (-425,250,17),
+            collision: false,
+            collider_size: (0,0),
+        ),
+        // mushrooms
+        LevelScenery (
+            image: "sprites/scenery/mushroom.png",
+            size: (64,64),
+            translation: (-400,270,15),
+            collision: false,
+            collider_size: (0,0),
+        ),
+        LevelScenery (
+            image: "sprites/scenery/mushroom.png",
+            size: (64,64),
+            translation: (760,25,14),
+            collision: false,
+            collider_size: (0,0),
+        ),
+        // butterflies
+        LevelScenery (
+            image: "sprites/scenery/monarch_butterfly.png",
+            size: (32,32),
+            translation: (-700,-380,250),
+            collision: false,
+            collider_size: (0,0),
+        ),
+        LevelScenery (
+            image: "sprites/scenery/monarch_butterfly.png",
+            size: (32,32),
+            translation: (250,-430,250),
+            collision: false,
+            collider_size: (0,0),
+        ),
+        // left hand leaves
+        LevelScenery (
+            image: "sprites/scenery/leaf.png",
+            size: (50,50),
+            translation: (-700,-35,15),
+            collision: false,
+            collider_size: (0,0),
+        ),
+        LevelScenery (
+            image: "sprites/scenery/leaf.png",
+            size: (50,50),
+            translation: (-650,55,15),
+            collision: false,
+            collider_size: (0,0),
+        ),
+        LevelScenery (
+            image: "sprites/scenery/leaf.png",
+            size: (50,50),
+            translation: (-330,245,15),
+            collision: false,
+            collider_size: (0,0),
+        ),
+        LevelScenery (
+            image: "sprites/scenery/leaf.png",
+            size: (50,50),
+            translation: (-240,375,15),
+            collision: false,
+            collider_size: (0,0),
+        ),
+        // right hand leaves
+        LevelScenery (
+            image: "sprites/scenery/leaf.png",
+            size: (50,50),
+            translation: (730,-45,15),
+            collision: false,
+            collider_size: (0,0),
+        ),
+        LevelScenery (
+            image: "sprites/scenery/leaf.png",
+            size: (50,50),
+            translation: (610,55,15),
+            collision: false,
+            collider_size: (0,0),
+        ),
+        LevelScenery (
+            image: "sprites/scenery/leaf.png",
+            size: (50,50),
+            translation: (430,245,15),
+            collision: false,
+            collider_size: (0,0),
+        ),
+        LevelScenery (
+            image: "sprites/scenery/leaf.png",
+            size: (50,50),
+            translation: (280,325,15),
             collision: false,
             collider_size: (0,0),
         ),
