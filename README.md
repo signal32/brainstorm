@@ -2,6 +2,8 @@
 # brainstorm: bird invaders
 best game ever*
 
+<img width="1628" height="966" alt="image" src="https://github.com/user-attachments/assets/55b2f68b-f2bc-4bb6-9468-0488b8f38e98" />
+
 <img width="1628" height="966" alt="image" src="https://github.com/user-attachments/assets/7bc29de6-57d9-468c-a8af-bea8c618897a" />
 
 ### Development
