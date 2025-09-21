@@ -1,16 +1,16 @@
+pub mod game_over;
 pub mod main_menu;
 pub mod pause;
 pub mod splash;
-pub mod game_over;
 
 use super::GameState;
 use bevy::prelude::*;
 use std::{path::PathBuf, sync::LazyLock};
 
+use game_over::*;
 use main_menu::*;
 use pause::*;
 use splash::*;
-use game_over::*;
 
 // set some color constants -- eventually this can maybe be configurable?
 static BUTTON_DEFAULT_COLOR: LazyLock<Color> = LazyLock::new(|| Color::srgb_u8(49, 104, 65));
@@ -38,7 +38,7 @@ impl Plugin for UiPlugin {
 /// Can be useful to despawn (or otherwise affect)
 /// the entire Menu regardless of where you are in it
 /// e.g. if you hit Esc while in [`GameState::Menu`] it should despawn all
-/// [`OnMenuScreen`] entities and switch to [`GameState::Gam`e], which would be difficult to do
+/// [`OnMenuScreen`] entities and switch to [`GameState::Game`], which would be difficult to do
 /// if we used only [`OnMainMenuScreen`] and [`OnSettingsMenuScreen`]
 
 #[derive(Component)]
@@ -80,7 +80,7 @@ pub(crate) enum PauseButtonAction {
 #[derive(Debug)]
 pub(crate) enum GameOverButtonAction {
     ReturnToTitle,
-    TryAgain
+    TryAgain,
 }
 
 /// ButtonNode! Standardise your buttons with this one cool trick!
@@ -138,18 +138,15 @@ pub struct MenuContainerNode;
 
 impl MenuContainerNode {
     pub fn spawn(cmd: &mut Commands) -> Entity {
-        cmd.spawn((
-            Node {
-                width: Val::Percent(100.0),
-                height: Val::Percent(100.0),
-                align_items: AlignItems::Center,
-                justify_content: JustifyContent::Center,
-                flex_direction: FlexDirection::Column,
-                ..default()
-            },
-            BackgroundColor(*MENU_BACKGROUND_COLOR),
-        ))
-        .id()
+        cmd.spawn((Node {
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::Center,
+            flex_direction: FlexDirection::Column,
+            ..default()
+        },))
+            .id()
     }
 }
 
@@ -295,7 +292,11 @@ pub(crate) fn settings_menu_setup_sys(
     }
     let container = MenuContainerNode::spawn(&mut cmd);
     cmd.entity(container)
-        .insert((OnMenuScreen, OnSettingsMenuScreen))
+        .insert((
+            OnMenuScreen,
+            OnSettingsMenuScreen,
+            BackgroundColor(*MENU_BACKGROUND_COLOR),
+        ))
         .with_children(|parent| {
             parent.spawn(sub_title_text);
         })
