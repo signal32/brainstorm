@@ -46,17 +46,126 @@ LevelAsset (
         ),
     ],
     scenery: [
+        // top left tree (front)
         LevelScenery (
             image: "sprites/oak_tree.png",
-            size: (300,300),
-            translation: (-600,300,15),
+            size: (500,500),
+            translation: (-650,320,15),
             collision: true,
+            collider_size: (300,300),
         ),
+        // top left corner tree (mostly hidden)
         LevelScenery (
-            image: "sprites/seeds.png",
-            size: (30,30),
-            translation: (400,350,15),
+            image: "sprites/oak_tree.png",
+            size: (500,500),
+            translation: (-500,400,15),
+            collision: true,
+            collider_size: (300,300),
+        ),
+        // left middle tree
+        LevelScenery (
+            image: "sprites/oak_tree.png",
+            size: (500,500),
+            translation: (-700,200,15),
+            collision: true,
+            collider_size: (300,300),
+        ),
+        // top right tree (front)
+        LevelScenery (
+            image: "sprites/oak_tree.png",
+            size: (500,500),
+            translation: (650,320,15),
+            collision: true,
+            collider_size: (300,300),
+        ),
+        // top right corner tree (mostly hidden)
+        LevelScenery (
+            image: "sprites/oak_tree.png",
+            size: (500,500),
+            translation: (500,400,15),
+            collision: true,
+            collider_size: (300,300),
+        ),
+        // right middle tree
+        LevelScenery (
+            image: "sprites/oak_tree.png",
+            size: (500,500),
+            translation: (700,200,15),
+            collision: true,
+            collider_size: (300,300),
+        ),
+        // note: birds are at z=200 so bottom trees are slightly above at 210
+        // bottom left corner tree
+        LevelScenery (
+            image: "sprites/oak_tree.png",
+            size: (500,500),
+            translation: (-700,-530,30),
             collision: false,
-        )
+            collider_size: (0,0),
+        ),
+        // bottom tree 2
+        LevelScenery (
+            image: "sprites/oak_tree.png",
+            size: (500,500),
+            translation: (-500,-550,210),
+            collision: false,
+            collider_size: (0,0),
+        ),
+        // bottom tree 3
+        LevelScenery (
+            image: "sprites/oak_tree.png",
+            size: (500,500),
+            translation: (-300,-580,210),
+            collision: false,
+            collider_size: (0,0),
+        ),
+        // bottom tree 4
+        LevelScenery (
+            image: "sprites/oak_tree.png",
+            size: (500,500),
+            translation: (-100,-560,210),
+            collision: false,
+            collider_size: (0,0),
+        ),
+        // bottom tree 5
+        LevelScenery (
+            image: "sprites/oak_tree.png",
+            size: (500,500),
+            translation: (-50,-570,210),
+            collision: false,
+            collider_size: (0,0),
+        ),
+        // bottom tree 6
+        LevelScenery (
+            image: "sprites/oak_tree.png",
+            size: (500,500),
+            translation: (100,-565,210),
+            collision: false,
+            collider_size: (0,0),
+        ),
+        // bottom tree 7
+        LevelScenery (
+            image: "sprites/oak_tree.png",
+            size: (500,500),
+            translation: (300,-585,210),
+            collision: false,
+            collider_size: (0,0),
+        ),
+        // bottom tree 8
+        LevelScenery (
+            image: "sprites/oak_tree.png",
+            size: (500,500),
+            translation: (450,-525,210),
+            collision: false,
+            collider_size: (0,0),
+        ),
+        // bottom right corner tree
+        LevelScenery (
+            image: "sprites/oak_tree.png",
+            size: (500,500),
+            translation: (700,-520,210),
+            collision: false,
+            collider_size: (0,0),
+        ),
     ]
 )
