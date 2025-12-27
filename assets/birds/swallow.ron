@@ -1,8 +1,9 @@
 BirdAsset (
     name: "Swallow",
     hunger: 1,
-    size: (50, 50),
+    size: (100, 100),
     sprite: "sprites/swallow.png",
     velocity: 150.0,
     on_feed_points: 15,
+    atlas_dimensions: Some((4, 1))
 )
