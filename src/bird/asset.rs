@@ -36,9 +36,10 @@ pub(super) fn load_bird_assets_sys(
 
             // columns x rows in the sprite sheet
             let dimensions = asset.atlas_dimensions.unwrap_or(UVec2 { x: 1, y: 1 });
+            let unit_dimensions = asset.unit_dimensions.unwrap_or(UVec2 {x: 64, y:32});
             // layout of the sprite sheet
             let texture_atlas_layout = texture_atlas_layouts.add(TextureAtlasLayout::from_grid(
-                UVec2 { x: 64, y: 32 }, // width x height of each sprite in sheet
+                unit_dimensions, // width x height of each sprite in sheet
                 dimensions[0],          // columns
                 dimensions[1],          // rows
                 None,                   // padding
@@ -93,6 +94,8 @@ pub struct BirdAsset {
     pub on_feed_points: u32,
     /// Columns and rows in sprite sheet
     atlas_dimensions: Option<UVec2>,
+    // Width x Height of one unit sprite in sprite sheet
+    unit_dimensions: Option<UVec2>,
     pub drop_probability: Option<f32>,
     pub droppings: Option<Vec<BirdAssetDroppingOption>>,
 }
