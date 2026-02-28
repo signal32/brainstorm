@@ -57,13 +57,14 @@ pub(crate) enum ButtonAction {
     Menu(MenuButtonAction),
     Pause(PauseButtonAction),
     GameOver(GameOverButtonAction),
+    Settings(SettingsButtonAction),
     Quit,
-    Settings,
 }
 
 /// Enum of all actions a menu [Button] should be able to perform
 #[derive(Debug)]
 pub(crate) enum MenuButtonAction {
+    GoToSettings,
     BackToMenu,
     NewGame,
 }
@@ -81,6 +82,13 @@ pub(crate) enum PauseButtonAction {
 pub(crate) enum GameOverButtonAction {
     ReturnToTitle,
     TryAgain,
+}
+
+/// Enum of all actions a settings [Button] should be able to perform
+#[derive(Debug)]
+pub(crate) enum SettingsButtonAction {
+    Difficulty,
+    NewGame,
 }
 
 /// ButtonNode! Standardise your buttons with this one cool trick!
@@ -304,10 +312,35 @@ pub(crate) fn settings_menu_setup_sys(
             ButtonNode::spawn(
                 &mut parent,
                 &asset_server,
+                ButtonAction::Settings(SettingsButtonAction::Difficulty),
+                "Difficulty".to_string()
+            );
+        })
+        .with_children(|mut parent| {
+            ButtonNode::spawn(
+                &mut parent,
+                &asset_server,
                 button_action,
                 "Back to Menu".to_string(),
             );
         });
+}
+
+fn settings_button_action_sys(
+    interactions: Query<(&Interaction, &ButtonAction), (Changed<Interaction>, With<Button>)>,
+) {
+    for (interaction, button_action) in &interactions {
+        if *interaction == Interaction::Pressed {
+            match button_action {
+                ButtonAction::Settings(SettingsButtonAction::Difficulty) => {
+                    // TODO: put the difficult changing actions here.
+                }
+                _ => {
+                    panic!("Not sure how you managed this.")
+                }
+            }
+        }
+    }
 }
 
 // stole this directly from an example but it seems a sensible way of removing

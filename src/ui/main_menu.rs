@@ -147,7 +147,7 @@ fn menu_button_action_sys(
                 ButtonAction::Quit => {
                     app_exit_events.send(AppExit::Success);
                 }
-                ButtonAction::Settings => {
+                ButtonAction::Menu(MenuButtonAction::GoToSettings) => {
                     menu_state.set(MenuState::Settings);
                     debug!("menu state: settings")
                 }
